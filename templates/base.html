@@ -1,0 +1,61 @@
+<!-- templates/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Hotel Management System{% endblock %}</title>
+    
+    <!-- Tailwind CSS via CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- HTMX -->
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+    
+    {% block extra_head %}{% endblock %}
+</head>
+<body class="bg-gray-100">
+    <!-- Navigation -->
+    <nav class="bg-blue-600 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3">
+            <div class="flex justify-between items-center">
+                <div class="text-xl font-bold">HotelEase</div>
+                <div class="space-x-4">
+                    {% if user.is_authenticated %}
+                        {% if user.role == 'admin' or user.role == 'manager' %}
+                            <a href="{% url 'admin:index' %}" class="hover:text-gray-200">Admin</a>
+                        {% endif %}
+                        <a href="{% url 'bookings:my_bookings' %}" class="hover:text-gray-200">My Bookings</a>
+                        <a href="{% url 'accounts:logout' %}" class="hover:text-gray-200">Logout</a>
+                    {% else %}
+                        <a href="{% url 'accounts:login' %}" class="hover:text-gray-200">Login</a>
+                        <a href="{% url 'accounts:register' %}" class="hover:text-gray-200">Register</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="mb-4 p-4 rounded {% if message.tags == 'error' %}bg-red-100 text-red-700{% else %}bg-green-100 text-green-700{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white mt-8">
+        <div class="container mx-auto px-4 py-6">
+            <p class="text-center">&copy; 2024 HotelEase. All rights reserved.</p>
+        </div>
+    </footer>
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
