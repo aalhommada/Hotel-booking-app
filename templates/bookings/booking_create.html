@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% block title %}Book Room{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto bg-white p-6 rounded-lg shadow-md">
+    <h1 class="text-2xl font-bold mb-6">Book Room: {{ room.name }}</h1>
+    
+    <div class="mb-6">
+        <h2 class="text-lg font-semibold mb-2">Room Details</h2>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+            <div>Room Type: {{ room.get_room_type_display }}</div>
+            <div>Price per night: ${{ room.price_per_night }}</div>
+            <div>Max Adults: {{ room.capacity_adults }}</div>
+            <div>Max Children: {{ room.capacity_children }}</div>
+        </div>
+    </div>
+
+    <form method="post" class="space-y-4"
+          hx-get="{% url 'bookings:check_availability' room.pk %}"
+          hx-trigger="change from:#id_check_in,#id_check_out"
+          hx-target="#availability-message">
+        {% csrf_token %}
+        
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label for="{{ form.check_in.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Check-in Date
+                </label>
+                {{ form.check_in }}
+                {{ form.check_in.errors }}
+            </div>
+            
+            <div>
+                <label for="{{ form.check_out.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Check-out Date
+                </label>
+                {{ form.check_out }}
+                {{ form.check_out.errors }}
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div>
+                <label for="{{ form.adults.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Adults
+                </label>
+                {{ form.adults }}
+                {{ form.adults.errors }}
+            </div>
+            
+            <div>
+                <label for="{{ form.children.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                    Children
+                </label>
+                {{ form.children }}
+                {{ form.children.errors }}
+            </div>
+        </div>
+
+        <div>
+            <label for="{{ form.special_requests.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                Special Requests
+            </label>
+            {{ form.special_requests }}
+            {{ form.special_requests.errors }}
+        </div>
+
+        <div id="availability-message" class="my-4"></div>
+
+        <div class="flex justify-end">
+            <button type="submit" 
+                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                Confirm Booking
+            </button>
+        </div>
+    </form>
+</div>
+{% endblock %}
