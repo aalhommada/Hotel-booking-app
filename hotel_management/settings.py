@@ -46,9 +46,15 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
      'django_htmx.middleware.HtmxMiddleware',
+     'accounts.middleware.RoleMiddleware',
 ]
 
 ROOT_URLCONF = 'hotel_management.urls'
+
+AUTHENTICATION_BACKENDS = [
+    'accounts.backends.EmailOrUsernameModelBackend',
+    'django.contrib.auth.backends.ModelBackend',
+]
 
 TEMPLATES = [
     {
