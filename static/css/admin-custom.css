@@ -1,0 +1,69 @@
+/* Custom styling for the booking admin interface */
+
+/* Status colors */
+.field-status select option[value="pending"] {
+    background-color: #FEF3C7;
+}
+
+.field-status select option[value="confirmed"] {
+    background-color: #D1FAE5;
+}
+
+.field-status select option[value="cancelled"] {
+    background-color: #FEE2E2;
+}
+
+.field-status select option[value="completed"] {
+    background-color: #DBEAFE;
+}
+
+/* Improve readability of timestamps section */
+.collapse {
+    background-color: #F3F4F6;
+    padding: 10px;
+    border-radius: 4px;
+}
+
+/* Style readonly fields */
+.readonly {
+    background-color: #F3F4F6 !important;
+    border-color: #E5E7EB !important;
+    color: #6B7280 !important;
+    cursor: not-allowed;
+}
+
+/* Highlight required fields */
+.required label {
+    font-weight: bold;
+}
+
+.required label:after {
+    content: "*";
+    color: #EF4444;
+    margin-left: 4px;
+}
+
+/* Improve form layout */
+.form-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+/* Style special requests textarea */
+#id_special_requests {
+    min-height: 100px;
+    font-family: inherit;
+}
+
+/* Responsive improvements */
+@media (max-width: 767px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+
+    .field-box {
+        margin-right: 0 !important;
+    }
+}
