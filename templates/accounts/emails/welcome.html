@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            padding: 20px 0;
+            background-color: #3b82f6;
+            color: white;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f9fafb;
+        }
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            background-color: #3b82f6;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Welcome to HotelEase</h1>
+        </div>
+        <div class="content">
+            <h2>Hi {{ user.first_name|default:user.username }},</h2>
+            <p>Thank you for joining HotelEase! We're excited to have you as a member of our community.</p>
+            <p>With your account, you can:</p>
+            <ul>
+                <li>Book rooms easily</li>
+                <li>Manage your reservations</li>
+                <li>View your booking history</li>
+                <li>Access exclusive offers</li>
+            </ul>
+            <p>
+                <a href="{{ site_url }}" class="button">Visit HotelEase</a>
+            </p>
+            <p>If you have any questions, please don't hesitate to contact our support team.</p>
+            <p>Best regards,<br>The HotelEase Team</p>
+        </div>
+    </div>
+</body>
+</html>
