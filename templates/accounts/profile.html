@@ -1,0 +1,100 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-3xl mx-auto">
+        <div class="bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+                <h2 class="text-lg leading-6 font-medium text-gray-900">Profile Information</h2>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Personal details and bookings.</p>
+            </div>
+            
+            <div class="border-t border-gray-200">
+                <dl>
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Full name</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {{ profile.get_full_name }}
+                        </dd>
+                    </div>
+                    
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Email address</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {{ profile.email }}
+                        </dd>
+                    </div>
+                    
+                    <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Phone number</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {{ profile.phone|default:"Not provided" }}
+                        </dd>
+                    </div>
+                    
+                    <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                        <dt class="text-sm font-medium text-gray-500">Address</dt>
+                        <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                            {{ profile.address|default:"Not provided" }}
+                        </dd>
+                    </div>
+                </dl>
+            </div>
+            
+            <div class="px-4 py-3 bg-gray-50 text-right sm:px-6">
+                <a href="{% url 'accounts:profile_edit' %}" 
+                   class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                    Edit Profile
+                </a>
+            </div>
+        </div>
+
+        <!-- Recent Bookings -->
+        <div class="mt-8 bg-white shadow rounded-lg">
+            <div class="px-4 py-5 sm:px-6">
+                <h3 class="text-lg leading-6 font-medium text-gray-900">Recent Bookings</h3>
+                <p class="mt-1 max-w-2xl text-sm text-gray-500">Your last 5 bookings.</p>
+            </div>
+            
+            <div class="border-t border-gray-200">
+                {% if bookings %}
+                    <ul class="divide-y divide-gray-200">
+                        {% for booking in bookings %}
+                        <li class="px-4 py-4 sm:px-6">
+                            <div class="flex items-center justify-between">
+                                <div class="flex flex-col">
+                                    <p class="text-sm font-medium text-blue-600">
+                                        {{ booking.room.name }}
+                                    </p>
+                                    <p class="text-sm text-gray-500">
+                                        {{ booking.check_in|date:"M d, Y" }} - {{ booking.check_out|date:"M d, Y" }}
+                                    </p>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full
+                                        {% if booking.status == 'confirmed' %}bg-green-100 text-green-800
+                                        {% elif booking.status == 'pending' %}bg-yellow-100 text-yellow-800
+                                        {% elif booking.status == 'cancelled' %}bg-red-100 text-red-800
+                                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                        {{ booking.get_status_display }}
+                                    </span>
+                                    <a href="{% url 'bookings:booking_detail' booking.pk %}" 
+                                       class="ml-4 text-sm text-blue-600 hover:text-blue-500">
+                                        View Details →
+                                    </a>
+                                </div>
+                            </div>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <div class="px-4 py-5 sm:px-6 text-center text-gray-500">
+                        No bookings found.
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
