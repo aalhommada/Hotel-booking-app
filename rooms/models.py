@@ -1,12 +1,10 @@
+# rooms/models.py
 from django.db import models
+from django.core.validators import MinValueValidator
 from django.utils import timezone
-from imagekit.models import ImageSpecField
-from imagekit.processors import ResizeToFill
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFit
-from django.core.validators import MinValueValidator
 from datetime import datetime
-
 
 class Room(models.Model):
     ROOM_TYPES = (
@@ -24,7 +22,7 @@ class Room(models.Model):
     )
 
     name = models.CharField(max_length=100)
-    room_number = models.CharField(max_length=10, unique=True)  # Added this field
+    room_number = models.CharField(max_length=10, unique=True)
     floor = models.IntegerField()
     room_type = models.CharField(max_length=20, choices=ROOM_TYPES)
     bed_type = models.CharField(max_length=20, choices=BED_TYPES)
@@ -35,7 +33,7 @@ class Room(models.Model):
     )
     capacity_adults = models.IntegerField(validators=[MinValueValidator(1)])
     capacity_children = models.IntegerField(validators=[MinValueValidator(0)])
-    description = models.TextField(blank=True)  # Added this field
+    description = models.TextField(blank=True)
     
     # Amenities
     has_wifi = models.BooleanField(default=True)
@@ -46,12 +44,18 @@ class Room(models.Model):
     has_balcony = models.BooleanField(default=False)
     has_minibar = models.BooleanField(default=False)
     has_desk = models.BooleanField(default=True)
-    has_closet = models.BooleanField(default=True)  # Added this field
+    has_closet = models.BooleanField(default=True)
     has_safe = models.BooleanField(default=False)
     
-    is_active = models.BooleanField(default=True)  # Added this field
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"{self.name} - Room {self.room_number}"
+
+    class Meta:
+        ordering = ['room_number']
 
     def check_availability(self, check_in_str, check_out_str):
         """Check if the room is available for the given dates"""
@@ -103,51 +107,43 @@ class Room(models.Model):
         if self.has_safe: amenities.append(('Safe', 'lock'))
         return amenities
 
-    def __str__(self):
-        return f"{self.name} - Room {self.room_number}"
-
-    class Meta:
-        ordering = ['room_number']
 class RoomImage(models.Model):
     IMAGE_FORMATS = (
         ('JPEG', 'JPEG'),
         ('PNG', 'PNG'),
-        ('WebP', 'WebP'),
-        ('GIF', 'GIF'),
+        ('WEBP', 'WebP'),
     )
 
     room = models.ForeignKey(Room, related_name='images', on_delete=models.CASCADE)
     image = ProcessedImageField(
         upload_to='room_images',
         processors=[ResizeToFit(1920, 1080)],
-        format=models.CharField(
-            max_length=10, 
-            choices=IMAGE_FORMATS, 
-            default='JPEG'
-        ),
+        format='JPEG',
         options={'quality': 85}
     )
-    image_format = models.CharField(
+    format = models.CharField(
         max_length=10, 
         choices=IMAGE_FORMATS, 
-        default='JPEG'
+        default='JPEG',
+        help_text="Select the output format for this image"
     )
     is_primary = models.BooleanField(default=False)
     caption = models.CharField(max_length=200, blank=True)
     order = models.IntegerField(default=0)
-    uploaded_at = models.DateTimeField(default=timezone.now)
+    uploaded_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['order', 'uploaded_at']
 
-    def save(self, *args, **kwargs):
-        if self.is_primary:
-            # Ensure only one primary image per room
-            RoomImage.objects.filter(room=self.room).exclude(pk=self.pk).update(is_primary=False)
-        # Set the image format based on the selection
-        self.image.format = self.image_format
-        super().save(*args, **kwargs)
-
     def __str__(self):
         return f"Image for {self.room.name} ({self.order})"
 
+    def save(self, *args, **kwargs):
+        # Set the image format based on the format field
+        self.image.format = self.format
+        
+        if self.is_primary:
+            # Ensure only one primary image per room
+            RoomImage.objects.filter(room=self.room).exclude(pk=self.pk).update(is_primary=False)
+        
+        super().save(*args, **kwargs)

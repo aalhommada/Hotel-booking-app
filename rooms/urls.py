@@ -10,5 +10,6 @@ urlpatterns = [
     path('<int:pk>/edit/', views.RoomUpdateView.as_view(), name='room_edit'),
     path('<int:pk>/delete/', views.RoomDeleteView.as_view(), name='room_delete'),
     path('manage/', views.RoomManagementView.as_view(), name='room_manage'),
-    path('api/availability/', views.check_room_availability, name='check_availability'),
+    # path('api/availability/', views.check_room_availability, name='check_availability'),
+     path('<int:pk>/check-availability/', views.check_room_availability, name='check_availability'),    
 ]
