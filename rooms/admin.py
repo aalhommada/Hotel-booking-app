@@ -1,4 +1,4 @@
-
+# rooms/admin.py
 from django.contrib import admin
 from .models import Room, RoomImage
 
@@ -8,13 +8,13 @@ class RoomImageInline(admin.TabularInline):
 
 @admin.register(Room)
 class RoomAdmin(admin.ModelAdmin):
-    list_display = ('number', 'name', 'room_type', 'price_per_night', 'capacity_adults', 'capacity_children')
-    list_filter = ('room_type', 'bed_type', 'floor')
-    search_fields = ('number', 'name')
+    list_display = ['room_number', 'name', 'room_type', 'price_per_night', 'is_active']  
+    list_filter = ['room_type', 'is_active']
+    search_fields = ['name', 'room_number']
     inlines = [RoomImageInline]
     fieldsets = (
         ('Basic Information', {
-            'fields': ('number', 'name', 'room_type', 'bed_type', 'floor', 'price_per_night')
+            'fields': ('room_number', 'name', 'room_type', 'bed_type', 'floor', 'price_per_night')
         }),
         ('Capacity', {
             'fields': ('capacity_adults', 'capacity_children')
@@ -22,8 +22,11 @@ class RoomAdmin(admin.ModelAdmin):
         ('Amenities', {
             'fields': (
                 'has_wifi', 'has_ac', 'has_heating', 'has_tv', 'has_bathroom',
-                'has_bathtub', 'has_shower', 'has_minibar', 'has_safe',
-                'has_desk', 'has_wardrobe', 'has_coffee_maker', 'has_balcony'
+                'has_minibar', 'has_safe', 'has_desk', 'has_closet', 
+                'has_balcony'
             )
+        }),
+        ('Additional Info', {
+            'fields': ('description', 'is_active')
         }),
     )

@@ -1,0 +1,187 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}Edit Room{% else %}Create New Room{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white shadow-md rounded-lg p-6">
+            <h1 class="text-2xl font-bold mb-6">
+                {% if object %}Edit Room: {{ object.name }}{% else %}Create New Room{% endif %}
+            </h1>
+
+            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                {% if form.errors %}
+                <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <!-- Error Icon -->
+                            <svg class="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-red-800">
+                                Please correct the following errors:
+                            </h3>
+                            <div class="mt-2 text-sm text-red-700">
+                                {{ form.errors }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                <!-- Basic Information -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h2 class="text-lg font-medium mb-4">Basic Information</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label for="{{ form.name.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Room Name
+                            </label>
+                            {{ form.name }}
+                        </div>
+                        <div>
+                            <label for="{{ form.room_number.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Room Number
+                            </label>
+                            {{ form.room_number }}
+                        </div>
+                        <div>
+                            <label for="{{ form.floor.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Floor
+                            </label>
+                            {{ form.floor }}
+                        </div>
+                        <div>
+                            <label for="{{ form.room_type.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Room Type
+                            </label>
+                            {{ form.room_type }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pricing and Capacity -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h2 class="text-lg font-medium mb-4">Pricing and Capacity</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div>
+                            <label for="{{ form.price_per_night.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Price per Night
+                            </label>
+                            {{ form.price_per_night }}
+                        </div>
+                        <div>
+                            <label for="{{ form.capacity_adults.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Adult Capacity
+                            </label>
+                            {{ form.capacity_adults }}
+                        </div>
+                        <div>
+                            <label for="{{ form.capacity_children.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                                Children Capacity
+                            </label>
+                            {{ form.capacity_children }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Amenities -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h2 class="text-lg font-medium mb-4">Amenities</h2>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        {% for field in form %}
+                            {% if field.field.widget.input_type == "checkbox" %}
+                            <div class="flex items-center">
+                                {{ field }}
+                                <label for="{{ field.id_for_label }}" class="ml-2 block text-sm text-gray-700">
+                                    {{ field.label }}
+                                </label>
+                            </div>
+                            {% endif %}
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <!-- Description -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h2 class="text-lg font-medium mb-4">Description</h2>
+                    <div>
+                        <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-700">
+                            Room Description
+                        </label>
+                        {{ form.description }}
+                    </div>
+                </div>
+
+                <!-- Images -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h2 class="text-lg font-medium mb-4">Room Images</h2>
+                    {{ image_formset.management_form }}
+                    <div class="space-y-4" id="image-formset">
+                        {% for image_form in image_formset %}
+                            <div class="border p-4 rounded">
+                                {{ image_form.as_p }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <button type="button" 
+                            class="mt-4 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
+                            onclick="addImageForm()">
+                        Add Another Image
+                    </button>
+                </div>
+
+                <!-- Submit Buttons -->
+                <div class="flex justify-end space-x-4">
+                    <a href="{% url 'rooms:room_manage' %}" 
+                       class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
+                        Cancel
+                    </a>
+                    <button type="submit"
+                            class="px-4 py-2 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700">
+                        {% if object %}Update Room{% else %}Create Room{% endif %}
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function addImageForm() {
+        const formset = document.getElementById('image-formset');
+        const forms = formset.getElementsByClassName('border');
+        const totalForms = document.getElementById('id_images-TOTAL_FORMS');
+        
+        // Clone the first form
+        const newForm = forms[0].cloneNode(true);
+        
+        // Update form index
+        const formIdx = forms.length;
+        newForm.innerHTML = newForm.innerHTML.replace(/-0-/g, `-${formIdx}-`);
+        
+        // Clear inputs
+        newForm.querySelectorAll('input').forEach(input => {
+            if (input.type !== 'hidden') {
+                input.value = '';
+            }
+        });
+        
+        // Update total forms count
+        totalForms.value = formIdx + 1;
+        
+        // Add new form to formset
+        formset.appendChild(newForm);
+    }
+</script>
+{% endblock %}

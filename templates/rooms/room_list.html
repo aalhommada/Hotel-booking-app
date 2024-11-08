@@ -1,0 +1,170 @@
+<!-- templates/rooms/room_list.html -->
+{% extends 'base.html' %}
+{% block title %}Available Rooms{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Search and Filter Section -->
+    <div class="mb-8 bg-white rounded-lg shadow p-6">
+        <form hx-get="{% url 'rooms:room_list' %}"
+              hx-target="#room-list"
+              hx-trigger="change"
+              class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            
+            <!-- Search Input -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
+                <input type="text" 
+                       name="search" 
+                       value="{{ search_query }}"
+                       placeholder="Search rooms..."
+                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+            </div>
+
+            <!-- Room Type Filter -->
+            <div>
+                <label class="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
+                <select name="room_type" 
+                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    <option value="">All Types</option>
+                    {% for type_code, type_name in room_types %}
+                    <option value="{{ type_code }}" {% if selected_type == type_code %}selected{% endif %}>
+                        {{ type_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <!-- Clear Filters -->
+            <div class="flex items-end">
+                <button type="reset" 
+                        class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200">
+                    Clear Filters
+                </button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Room List Section -->
+    <div id="room-list" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        {% for room in rooms %}
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <!-- Room Image -->
+            {% if room.images.exists %}
+            <div class="h-48 overflow-hidden">
+                <img src="{{ room.images.first.image.url }}" 
+                     alt="{{ room.name }}"
+                     class="w-full h-full object-cover">
+            </div>
+            {% endif %}
+            
+            <!-- Room Details -->
+            <div class="p-6">
+                <div class="flex justify-between items-start mb-2">
+                    <h2 class="text-xl font-semibold">{{ room.name }}</h2>
+                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium
+                               {% if room.room_type == 'suite' %}bg-purple-100 text-purple-800
+                               {% elif room.room_type == 'family' %}bg-green-100 text-green-800
+                               {% elif room.room_type == 'double' %}bg-blue-100 text-blue-800
+                               {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ room.get_room_type_display }}
+                    </span>
+                </div>
+
+                <p class="text-gray-600 mb-4">Room {{ room.room_number }} • Floor {{ room.floor }}</p>
+
+                <!-- Amenities -->
+                <div class="flex flex-wrap gap-2 mb-4">
+                    {% if room.has_wifi %}
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100">
+                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path d="M8.111 16.404a5.5 5.5 0 017.778 0M12 20h.01m-7.08-7.071c3.904-3.905 10.236-3.905 14.14 0M1.394 9.393c5.857-5.857 15.355-5.857 21.213 0"/>
+                        </svg>
+                        WiFi
+                    </span>
+                    {% endif %}
+
+                    {% if room.has_ac %}
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100">
+                        AC
+                    </span>
+                    {% endif %}
+
+                    {% if room.has_tv %}
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100">
+                        TV
+                    </span>
+                    {% endif %}
+
+                    {% if room.has_balcony %}
+                    <span class="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100">
+                        Balcony
+                    </span>
+                    {% endif %}
+                </div>
+
+                <!-- Capacity and Price -->
+                <div class="flex justify-between items-center mb-4">
+                    <div class="text-sm text-gray-600">
+                        <span>Up to {{ room.capacity_adults }} adults</span>
+                        {% if room.capacity_children %}
+                        <span> • {{ room.capacity_children }} children</span>
+                        {% endif %}
+                    </div>
+                    <div class="text-lg font-bold text-blue-600">
+                        ${{ room.price_per_night }}<span class="text-sm font-normal text-gray-600">/night</span>
+                    </div>
+                </div>
+
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-2">
+                    <a href="{% url 'rooms:room_detail' room.pk %}"
+                       class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700">
+                        View Details
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-span-full text-center py-12">
+            <h3 class="text-lg font-medium text-gray-900">No rooms found</h3>
+            <p class="mt-2 text-sm text-gray-500">Try adjusting your search criteria</p>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-8 flex justify-center">
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}"
+               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                Previous
+            </a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                    {{ num }}
+                </span>
+                {% else %}
+                <a href="?page={{ num }}"
+                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}"
+               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                Next
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

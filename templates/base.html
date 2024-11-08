@@ -25,8 +25,12 @@
                         {% if user.role == 'admin' or user.role == 'manager' %}
                             <a href="{% url 'admin:index' %}" class="hover:text-gray-200">Admin</a>
                         {% endif %}
-                        <a href="{% url 'bookings:my_bookings' %}" class="hover:text-gray-200">My Bookings</a>
-                        <a href="{% url 'accounts:logout' %}" class="hover:text-gray-200">Logout</a>
+                        {# <a href="{% url 'bookings:my_bookings' %}" class="hover:text-gray-200">My Bookings</a> #}
+                        <a href="{% url 'accounts:profile' %}" class="hover:text-gray-200">Profile</a>
+                        <form method="post" action="{% url 'accounts:logout' %}" class="inline">
+                            {% csrf_token %}
+                            <button type="submit" class="hover:text-gray-200">Logout</button>
+                        </form>
                     {% else %}
                         <a href="{% url 'accounts:login' %}" class="hover:text-gray-200">Login</a>
                         <a href="{% url 'accounts:register' %}" class="hover:text-gray-200">Register</a>

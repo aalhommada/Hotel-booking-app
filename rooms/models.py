@@ -4,6 +4,8 @@ from imagekit.models import ImageSpecField
 from imagekit.processors import ResizeToFill
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFit
+from django.core.validators import MinValueValidator
+
 
 class Room(models.Model):
     ROOM_TYPES = (
@@ -19,15 +21,20 @@ class Room(models.Model):
         ('queen', 'Queen'),
         ('king', 'King'),
     )
-    
-    number = models.CharField(max_length=10, unique=True)
+
     name = models.CharField(max_length=100)
+    room_number = models.CharField(max_length=10, unique=True)  # Added this field
+    floor = models.IntegerField()
     room_type = models.CharField(max_length=20, choices=ROOM_TYPES)
     bed_type = models.CharField(max_length=20, choices=BED_TYPES)
-    floor = models.IntegerField()
-    price_per_night = models.DecimalField(max_digits=10, decimal_places=2)
-    capacity_adults = models.IntegerField()
-    capacity_children = models.IntegerField()
+    price_per_night = models.DecimalField(
+        max_digits=10, 
+        decimal_places=2,
+        validators=[MinValueValidator(0)]
+    )
+    capacity_adults = models.IntegerField(validators=[MinValueValidator(1)])
+    capacity_children = models.IntegerField(validators=[MinValueValidator(0)])
+    description = models.TextField(blank=True)  # Added this field
     
     # Amenities
     has_wifi = models.BooleanField(default=True)
@@ -35,34 +42,21 @@ class Room(models.Model):
     has_heating = models.BooleanField(default=True)
     has_tv = models.BooleanField(default=True)
     has_bathroom = models.BooleanField(default=True)
-    has_bathtub = models.BooleanField(default=False)
-    has_shower = models.BooleanField(default=True)
-    has_minibar = models.BooleanField(default=False)
-    has_safe = models.BooleanField(default=False)
-    has_desk = models.BooleanField(default=True)
-    has_wardrobe = models.BooleanField(default=True)
-    has_coffee_maker = models.BooleanField(default=False)
     has_balcony = models.BooleanField(default=False)
+    has_minibar = models.BooleanField(default=False)
+    has_desk = models.BooleanField(default=True)
+    has_closet = models.BooleanField(default=True)  # Added this field
+    has_safe = models.BooleanField(default=False)
     
+    is_active = models.BooleanField(default=True)  # Added this field
+    created_at = models.DateTimeField(default=timezone.now)
+    updated_at = models.DateTimeField(auto_now=True)
+
     def __str__(self):
-        return f"{self.name} - Room {self.number}"
-    
+        return f"{self.name} - Room {self.room_number}"
 
-    def get_amenities(self):
-        """Returns a list of active amenities"""
-        amenities = []
-        if self.has_wifi: amenities.append('WiFi')
-        if self.has_ac: amenities.append('Air Conditioning')
-        if self.has_heating: amenities.append('Heating')
-        if self.has_tv: amenities.append('TV')
-        if self.has_bathroom: amenities.append('Private Bathroom')
-        if self.has_balcony: amenities.append('Balcony')
-        if self.has_minibar: amenities.append('Minibar')
-        if self.has_desk: amenities.append('Work Desk')
-        if self.has_closet: amenities.append('Closet')
-        if self.has_safe: amenities.append('Safe')
-        return amenities
-
+    class Meta:
+        ordering = ['room_number']
 class RoomImage(models.Model):
     IMAGE_FORMATS = (
         ('JPEG', 'JPEG'),
