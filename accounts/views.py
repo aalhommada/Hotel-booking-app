@@ -5,9 +5,9 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.views.generic import CreateView, UpdateView, DetailView
 from django.urls import reverse_lazy
 from django.contrib import messages
-from .forms import CustomUserCreationForm, CustomUserChangeForm
-from .models import CustomUser
-from .forms import LoginForm
+from django.contrib.auth.models import User
+from .models import UserProfile
+from .forms import CustomUserCreationForm, CustomUserChangeForm, LoginForm
 
 class LoginView(BaseLoginView):
     template_name = 'accounts/login.html'
@@ -21,19 +21,12 @@ class LoginView(BaseLoginView):
             return next_url
         return reverse_lazy('core:home')
 
-    def form_valid(self, form):
-        remember_me = form.cleaned_data.get('remember_me')
-        if not remember_me:
-            # Session expires when browser closes
-            self.request.session.set_expiry(0)
-        return super().form_valid(form)
-
 class LogoutView(BaseLogoutView):
     next_page = reverse_lazy('rooms:room_list')
     http_method_names = ['get', 'post']
 
 class RegisterView(CreateView):
-    model = CustomUser
+    model = User
     form_class = CustomUserCreationForm
     template_name = 'accounts/register.html'
     success_url = reverse_lazy('accounts:login')
@@ -44,15 +37,15 @@ class RegisterView(CreateView):
         return response
 
 class ProfileView(LoginRequiredMixin, DetailView):
-    model = CustomUser
+    model = User
     template_name = 'accounts/profile.html'
     context_object_name = 'profile'
     
     def get_object(self):
         return self.request.user
-    
+
 class ProfileEditView(LoginRequiredMixin, UpdateView):
-    model = CustomUser
+    model = User
     form_class = CustomUserChangeForm
     template_name = 'accounts/profile_edit.html'
     success_url = reverse_lazy('accounts:profile')

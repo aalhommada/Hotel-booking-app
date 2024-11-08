@@ -1,22 +1,12 @@
-from django.contrib.auth.models import AbstractUser
+# accounts/models.py
+from django.contrib.auth.models import User
 from django.db import models
 
-class CustomUser(AbstractUser):
-    ROLE_CHOICES = (
-        ('admin', 'Admin'),
-        ('manager', 'Manager'),
-        ('team', 'Team'),
-        ('customer', 'Customer'),
-    )
-    
-    role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='customer')
+# Extend User model with a profile
+class UserProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone = models.CharField(max_length=15, blank=True)
     address = models.TextField(blank=True)
 
-    class Meta:
-        ordering = ['username']
-        verbose_name = 'User'
-        verbose_name_plural = 'Users'
-
     def __str__(self):
-        return self.username
+        return f"Profile for {self.user.username}"

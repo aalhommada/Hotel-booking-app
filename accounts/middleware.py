@@ -9,14 +9,11 @@ class RoleMiddleware:
 
     def __call__(self, request):
         if request.user.is_authenticated:
-            # Define protected paths and required roles
+            # Define protected paths and required groups
             admin_paths = ['/admin/', '/manager/']
             team_paths = ['/bookings/manage/']
             
             path = request.path_info
-            
-            # Safely get user role, default to 'customer' if not found
-            user_role = getattr(request.user, 'role', None)
             
             # If user is superuser, allow all access
             if request.user.is_superuser:
@@ -24,13 +21,13 @@ class RoleMiddleware:
 
             # Check admin area access
             if any(path.startswith(p) for p in admin_paths):
-                if not user_role or user_role not in ['admin', 'manager']:
+                if not request.user.groups.filter(name='Managers').exists():
                     messages.error(request, 'Access denied. Insufficient permissions.')
                     return redirect('rooms:room_list')
 
             # Check team area access
             if any(path.startswith(p) for p in team_paths):
-                if not user_role or user_role not in ['admin', 'manager', 'team']:
+                if not request.user.groups.filter(name__in=['Managers', 'Team']).exists():
                     messages.error(request, 'Access denied. Insufficient permissions.')
                     return redirect('rooms:room_list')
 

@@ -32,9 +32,9 @@ INSTALLED_APPS = [
     'django_htmx',
     'imagekit',
     'accounts.apps.AccountsConfig',
-    'rooms',
-    'bookings',
-    'core',
+    'rooms.apps.RoomsConfig',
+    'bookings.apps.BookingsConfig',
+    'core.apps.CoreConfig',
 ]
 
 MIDDLEWARE = [
@@ -56,7 +56,6 @@ AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
 ]
 
-AUTH_USER_MODEL = 'accounts.CustomUser'
 
 TEMPLATES = [
     {
