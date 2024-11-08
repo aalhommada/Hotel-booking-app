@@ -1,0 +1,178 @@
+<!-- templates/rooms/room_detail.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ room.name }} - Details{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <!-- Image Gallery -->
+    <div class="mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {% with primary_image=room.get_primary_image %}
+            {% if primary_image %}
+            <div class="relative h-96 overflow-hidden rounded-lg">
+                <img src="{{ primary_image.image.url }}" 
+                     alt="{{ room.name }}"
+                     class="w-full h-full object-cover">
+            </div>
+            {% endif %}
+            {% endwith %}
+            
+            <div class="grid grid-cols-2 gap-4">
+                {% for image in room.get_gallery_images|slice:":4" %}
+                <div class="relative h-44 overflow-hidden rounded-lg">
+                    <img src="{{ image.image.url }}" 
+                         alt="{{ room.name }}"
+                         class="w-full h-full object-cover">
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Room Info -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Content -->
+        <div class="lg:col-span-2">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">{{ room.name }}</h1>
+                        <p class="text-gray-600">Room {{ room.room_number }} • Floor {{ room.floor }}</p>
+                    </div>
+                    <span class="px-3 py-1 rounded-full text-sm font-semibold
+                        {% if room.room_type == 'suite' %}bg-purple-100 text-purple-800
+                        {% elif room.room_type == 'family' %}bg-green-100 text-green-800
+                        {% else %}bg-blue-100 text-blue-800{% endif %}">
+                        {{ room.get_room_type_display }}
+                    </span>
+                </div>
+
+                {% if room.description %}
+                <div class="prose max-w-none mb-6">
+                    {{ room.description|linebreaks }}
+                </div>
+                {% endif %}
+
+                <!-- Amenities -->
+                <h2 class="text-xl font-semibold mb-4">Room Amenities</h2>
+                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 mb-6">
+                    {% for amenity, icon in room.get_amenities_list %}
+                    <div class="flex items-center space-x-2">
+                        <svg class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        <span>{{ amenity }}</span>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <!-- Capacity -->
+                <h2 class="text-xl font-semibold mb-4">Room Capacity</h2>
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <p class="text-gray-600">Adults</p>
+                        <p class="text-2xl font-bold">{{ room.capacity_adults }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Children</p>
+                        <p class="text-2xl font-bold">{{ room.capacity_children }}</p>
+                    </div>
+                </div>
+            </div>
+
+            {% if related_rooms %}
+            <!-- Related Rooms -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold mb-4">Similar Rooms</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {% for related in related_rooms %}
+                    <div class="border rounded-lg overflow-hidden">
+                        {% with image=related.get_primary_image %}
+                        {% if image %}
+                        <img src="{{ image.image.url }}" 
+                             alt="{{ related.name }}"
+                             class="w-full h-48 object-cover">
+                        {% endif %}
+                        {% endwith %}
+                        <div class="p-4">
+                            <h3 class="font-semibold">{{ related.name }}</h3>
+                            <p class="text-gray-600">${{ related.price_per_night }}/night</p>
+                            <a href="{% url 'rooms:room_detail' related.pk %}"
+                               class="text-blue-600 hover:text-blue-800">
+                                View Details →
+                            </a>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Booking Sidebar -->
+        <div class="lg:col-span-1">
+            <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h2 class="text-xl font-semibold">Book This Room</h2>
+                    <p class="text-2xl font-bold text-blue-600">${{ room.price_per_night }}</p>
+                </div>
+
+                <form hx-get="{% url 'rooms:check_availability' room.pk %}"
+                      hx-target="#availability-message"
+                      hx-trigger="change"
+                      class="space-y-4">
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Check In</label>
+                        <input type="date" 
+                               name="check_in" 
+                               required
+                               min="{{ today|date:'Y-m-d' }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Check Out</label>
+                        <input type="date" 
+                               name="check_out" 
+                               required
+                               min="{{ today|date:'Y-m-d' }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                    </div>
+
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Guests</label>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <input type="number" 
+                                       name="adults" 
+                                       placeholder="Adults"
+                                       min="1" 
+                                       max="{{ room.capacity_adults }}"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            </div>
+                            <div>
+                                <input type="number" 
+                                       name="children" 
+                                       placeholder="Children"
+                                       min="0" 
+                                       max="{{ room.capacity_children }}"
+                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="availability-message"></div>
+
+                    <button type="submit" 
+                            class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
+                        Check Availability
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

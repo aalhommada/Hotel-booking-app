@@ -5,6 +5,7 @@ from imagekit.processors import ResizeToFill
 from imagekit.models import ProcessedImageField
 from imagekit.processors import ResizeToFit
 from django.core.validators import MinValueValidator
+from datetime import datetime
 
 
 class Room(models.Model):
@@ -51,6 +52,56 @@ class Room(models.Model):
     is_active = models.BooleanField(default=True)  # Added this field
     created_at = models.DateTimeField(default=timezone.now)
     updated_at = models.DateTimeField(auto_now=True)
+
+    def check_availability(self, check_in_str, check_out_str):
+        """Check if the room is available for the given dates"""
+        try:
+            check_in = datetime.strptime(check_in_str, '%Y-%m-%d').date()
+            check_out = datetime.strptime(check_out_str, '%Y-%m-%d').date()
+            
+            if check_in >= check_out:
+                raise ValueError("Check-out must be after check-in")
+                
+            if check_in < timezone.now().date():
+                raise ValueError("Check-in cannot be in the past")
+            
+            # Check for overlapping bookings
+            overlapping_bookings = self.booking_set.filter(
+                check_in__lt=check_out,
+                check_out__gt=check_in,
+                status__in=['pending', 'confirmed']
+            )
+            
+            return not overlapping_bookings.exists()
+            
+        except ValueError as e:
+            raise ValueError(str(e))
+
+    def get_primary_image(self):
+        """Get the primary image or first image or None"""
+        return self.images.filter(is_primary=True).first() or self.images.first()
+
+    def get_gallery_images(self):
+        """Get all images except primary for gallery"""
+        primary_image = self.get_primary_image()
+        if primary_image:
+            return self.images.exclude(id=primary_image.id)
+        return self.images.all()
+
+    def get_amenities_list(self):
+        """Get list of available amenities"""
+        amenities = []
+        if self.has_wifi: amenities.append(('WiFi', 'wifi'))
+        if self.has_ac: amenities.append(('Air Conditioning', 'ac'))
+        if self.has_heating: amenities.append(('Heating', 'heat'))
+        if self.has_tv: amenities.append(('TV', 'tv'))
+        if self.has_bathroom: amenities.append(('Private Bathroom', 'bath'))
+        if self.has_balcony: amenities.append(('Balcony', 'balcony'))
+        if self.has_minibar: amenities.append(('Minibar', 'drink'))
+        if self.has_desk: amenities.append(('Work Desk', 'desk'))
+        if self.has_closet: amenities.append(('Closet', 'closet'))
+        if self.has_safe: amenities.append(('Safe', 'lock'))
+        return amenities
 
     def __str__(self):
         return f"{self.name} - Room {self.room_number}"
