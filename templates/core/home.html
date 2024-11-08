@@ -1,6 +1,6 @@
 <!-- templates/core/home.html -->
 {% extends 'base.html' %}
-
+{% load static %}
 {% block title %}Welcome to HotelEase{% endblock %}
 
 {% block content %}
@@ -17,7 +17,7 @@
                 </a>
             </div>
             <div class="md:w-1/2">
-                <img src="/api/placeholder/800/400" alt="Hotel" class="w-full h-full object-cover">
+                <img src="{% static 'images/hero.jpeg' %}" alt="Hotel" class="w-full h-full object-cover">
             </div>
         </div>
     </div>
