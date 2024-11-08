@@ -2,55 +2,121 @@
 {% block title %}My Bookings{% endblock %}
 
 {% block content %}
-<div class="container mx-auto px-4">
-    <h1 class="text-2xl font-bold mb-6">
-        {% if user.role in 'admin,manager' %}
-            All Bookings
-        {% elif user.role == 'team' %}
-            Today's Check-ins
-        {% else %}
-            My Bookings
-        {% endif %}
-    </h1>
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-2xl font-bold text-gray-900">My Bookings</h1>
+        
+        <!-- Status Filter -->
+        <div class="mt-4 flex flex-wrap gap-2">
+            <a href="{% url 'bookings:booking_list' %}" 
+               class="px-4 py-2 rounded-md {% if not current_status %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %}">
+                All
+            </a>
+            {% for status_code, status_label in status_choices %}
+            <a href="?status={{ status_code }}" 
+               class="px-4 py-2 rounded-md {% if current_status == status_code %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %}">
+                {{ status_label }}
+            </a>
+            {% endfor %}
+        </div>
+    </div>
 
-    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+    <!-- Bookings List -->
+    <div class="space-y-6">
         {% for booking in bookings %}
-        <div class="bg-white p-4 rounded-lg shadow">
-            <div class="flex justify-between items-start mb-4">
-                <div>
-                    <h3 class="font-semibold">{{ booking.room.name }}</h3>
-                    <p class="text-sm text-gray-600">Booking #{{ booking.id }}</p>
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="p-6">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <h3 class="text-lg font-semibold text-gray-900">{{ booking.room.name }}</h3>
+                        <p class="text-sm text-gray-500">Booking #{{ booking.id }}</p>
+                    </div>
+                    <span class="px-2 py-1 text-sm rounded-full
+                        {% if booking.status == 'confirmed' %}bg-green-100 text-green-800
+                        {% elif booking.status == 'pending' %}bg-yellow-100 text-yellow-800
+                        {% elif booking.status == 'cancelled' %}bg-red-100 text-red-800
+                        {% else %}bg-gray-100 text-gray-800{% endif %}">
+                        {{ booking.get_status_display }}
+                    </span>
                 </div>
-                <span class="px-2 py-1 text-sm rounded
-                    {% if booking.status == 'confirmed' %}bg-green-100 text-green-800
-                    {% elif booking.status == 'pending' %}bg-yellow-100 text-yellow-800
-                    {% elif booking.status == 'cancelled' %}bg-red-100 text-red-800
-                    {% else %}bg-gray-100 text-gray-800{% endif %}">
-                    {{ booking.get_status_display }}
-                </span>
-            </div>
-            
-            <div class="space-y-2 text-sm">
-                <p><span class="font-medium">Check-in:</span> {{ booking.check_in }}</p>
-                <p><span class="font-medium">Check-out:</span> {{ booking.check_out }}</p>
-                <p><span class="font-medium">Guests:</span> 
-                    {{ booking.adults }} adult(s){% if booking.children %}, {{ booking.children }} children{% endif %}
-                </p>
-                <p><span class="font-medium">Total Price:</span> ${{ booking.total_price }}</p>
-            </div>
-            
-            <div class="mt-4">
-                <a href="{% url 'bookings:booking_detail' booking.pk %}"
-                   class="text-blue-600 hover:text-blue-800">
-                    View Details →
-                </a>
+
+                <div class="mt-4 grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="font-medium text-gray-500">Check In:</span>
+                        <span class="ml-2">{{ booking.check_in|date:"M d, Y" }}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-500">Check Out:</span>
+                        <span class="ml-2">{{ booking.check_out|date:"M d, Y" }}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-500">Guests:</span>
+                        <span class="ml-2">{{ booking.adults }} adults{% if booking.children %}, {{ booking.children }} children{% endif %}</span>
+                    </div>
+                    <div>
+                        <span class="font-medium text-gray-500">Total Price:</span>
+                        <span class="ml-2">${{ booking.total_price }}</span>
+                    </div>
+                </div>
+
+                <div class="mt-6 flex justify-end space-x-4">
+                    <a href="{% url 'bookings:booking_detail' booking.pk %}"
+                       class="text-blue-600 hover:text-blue-800">
+                        View Details
+                    </a>
+                    {% if booking.can_be_cancelled %}
+                    <a href="{% url 'bookings:booking_cancel' booking.pk %}"
+                       class="text-red-600 hover:text-red-800">
+                        Cancel Booking
+                    </a>
+                    {% endif %}
+                </div>
             </div>
         </div>
         {% empty %}
-        <div class="col-span-full text-center py-8 text-gray-500">
-            No bookings found.
+        <div class="text-center py-12 bg-white rounded-lg shadow">
+            <h3 class="text-lg font-medium text-gray-900">No bookings found</h3>
+            <p class="mt-2 text-sm text-gray-500">Start browsing our rooms to make your first booking!</p>
+            <a href="{% url 'rooms:room_list' %}" 
+               class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                Browse Rooms
+            </a>
         </div>
         {% endfor %}
     </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <div class="mt-8 flex justify-center">
+        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+            {% if page_obj.has_previous %}
+            <a href="?page={{ page_obj.previous_page_number }}"
+               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                Previous
+            </a>
+            {% endif %}
+
+            {% for num in page_obj.paginator.page_range %}
+                {% if page_obj.number == num %}
+                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+                    {{ num }}
+                </span>
+                {% else %}
+                <a href="?page={{ num }}"
+                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+                    {{ num }}
+                </a>
+                {% endif %}
+            {% endfor %}
+
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}"
+               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+                Next
+            </a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

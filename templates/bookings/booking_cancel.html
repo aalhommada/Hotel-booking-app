@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Cancel Booking{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-lg mx-auto">
+        <div class="bg-white shadow rounded-lg overflow-hidden">
+            <div class="p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">Cancel Booking</h2>
+                <p class="text-gray-600 mb-6">Are you sure you want to cancel this booking?</p>
+                
+                <!-- Booking Summary -->
+                <div class="bg-gray-50 rounded-md p-4 mb-6">
+                    <dl class="space-y-2">
+                        <div class="flex justify-between">
+                            <dt class="text-sm font-medium text-gray-500">Room:</dt>
+                            <dd class="text-sm text-gray-900">{{ booking.room.name }}</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-sm font-medium text-gray-500">Check In:</dt>
+                            <dd class="text-sm text-gray-900">{{ booking.check_in|date:"M d, Y" }}</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-sm font-medium text-gray-500">Check Out:</dt>
+                            <dd class="text-sm text-gray-900">{{ booking.check_out|date:"M d, Y" }}</dd>
+                        </div>
+                        <div class="flex justify-between">
+                            <dt class="text-sm font-medium text-gray-500">Total Price:</dt>
+                            <dd class="text-sm text-gray-900">${{ booking.total_price }}</dd>
+                        </div>
+                    </dl>
+                </div>
+
+                <form method="post" class="space-y-4">
+                    {% csrf_token %}
+                    <div class="flex justify-end space-x-4">
+                        <a href="{% url 'bookings:booking_detail' booking.pk %}"
+                           class="px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50">
+                            Keep Booking
+                        </a>
+                        <button type="submit"
+                                class="px-4 py-2 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-red-600 hover:bg-red-700">
+                            Confirm Cancellation
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

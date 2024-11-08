@@ -1,9 +1,12 @@
+# bookings/urls.py
 from django.urls import path
 from . import views
 
 app_name = 'bookings'
 
-# urlpatterns = [
-#     path('my-bookings/', views.MyBookingsView.as_view(), name='my_bookings'),
-#     # other booking URLs will go here
-# ]
+urlpatterns = [
+    path('', views.BookingListView.as_view(), name='booking_list'),
+    path('<int:pk>/', views.BookingDetailView.as_view(), name='booking_detail'),
+    path('create/<int:room_pk>/', views.BookingCreateView.as_view(), name='booking_create'),
+    path('<int:pk>/cancel/', views.BookingCancelView.as_view(), name='booking_cancel'),
+]

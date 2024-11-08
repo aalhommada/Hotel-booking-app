@@ -1,23 +1,25 @@
-
+# bookings/admin.py
 from django.contrib import admin
+from django.utils.html import format_html
 from .models import Booking
 
 @admin.register(Booking)
 class BookingAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'room', 'check_in', 'check_out', 'status', 'total_price')
-    list_filter = ('status', 'check_in', 'check_out')
-    search_fields = ('user__username', 'room__name', 'room__number')
-    readonly_fields = ('created_at', 'updated_at')
+    list_display = ['id', 'guest_info', 'room_info', 'date_info', 'status', 'total_price', 'created_at']
+    list_filter = ['status', 'created_at', 'check_in', 'check_out']
+    search_fields = ['user__email', 'user__username', 'room__name', 'room__room_number']
+    readonly_fields = ['created_at', 'updated_at', 'total_price']
     
     fieldsets = (
         ('Booking Information', {
-            'fields': ('user', 'room', 'check_in', 'check_out', 'status')
+            'fields': (
+                'user', 'room', 'status', 'total_price',
+                ('check_in', 'check_out'),
+                ('adults', 'children'),
+            )
         }),
-        ('Guest Information', {
-            'fields': ('adults', 'children', 'special_requests')
-        }),
-        ('Financial', {
-            'fields': ('total_price',)
+        ('Additional Information', {
+            'fields': ('special_requests',)
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -25,21 +27,27 @@ class BookingAdmin(admin.ModelAdmin):
         }),
     )
 
-    def get_readonly_fields(self, request, obj=None):
-        # Make certain fields readonly after creation
-        if obj:  # editing an existing object
-            return self.readonly_fields + ('user', 'room', 'total_price')
-        return self.readonly_fields
+    def guest_info(self, obj):
+        return format_html(
+            '<strong>{}</strong><br/><small>{}</small>',
+            obj.user.get_full_name() or obj.user.username,
+            obj.user.email
+        )
+    guest_info.short_description = 'Guest'
 
-    def save_model(self, request, obj, form, change):
-        if not change:  # If creating a new booking
-            # Calculate the total price based on the room price and duration
-            days = (obj.check_out - obj.check_in).days
-            obj.total_price = obj.room.price_per_night * days
-        super().save_model(request, obj, form, change)
+    def room_info(self, obj):
+        return format_html(
+            '<strong>{}</strong><br/><small>Room {}</small>',
+            obj.room.name,
+            obj.room.room_number
+        )
+    room_info.short_description = 'Room'
 
-    class Media:
-        css = {
-            'all': ('css/admin-custom.css',)
-        }
-        js = ('js/admin-booking.js',)
+    def date_info(self, obj):
+        return format_html(
+            '<strong>{}</strong> to <strong>{}</strong><br/><small>{} nights</small>',
+            obj.check_in.strftime('%Y-%m-%d'),
+            obj.check_out.strftime('%Y-%m-%d'),
+            obj.duration
+        )
+    date_info.short_description = 'Dates'
