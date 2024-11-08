@@ -4,47 +4,78 @@
 
 {% block content %}
 <div class="container mx-auto px-4 py-8">
-    <!-- Search and Filter Section -->
-    <div class="mb-8 bg-white rounded-lg shadow p-6">
-        <form hx-get="{% url 'rooms:room_list' %}"
-              hx-target="#room-list"
-              hx-trigger="change"
-              class="grid grid-cols-1 md:grid-cols-3 gap-4">
-            
-            <!-- Search Input -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Search</label>
-                <input type="text" 
-                       name="search" 
-                       value="{{ search_query }}"
-                       placeholder="Search rooms..."
-                       class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-            </div>
+    <!-- search section -->
+<div class="bg-white rounded-lg shadow p-6 mb-8">
+    <form method="get" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <!-- Check-in Date -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Check In</label>
+            <input type="date"
+                   name="check_in"
+                   value="{{ check_in }}"
+                   min="{{ today|date:'Y-m-d' }}"
+                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        </div>
 
-            <!-- Room Type Filter -->
-            <div>
-                <label class="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
-                <select name="room_type" 
-                        class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                    <option value="">All Types</option>
-                    {% for type_code, type_name in room_types %}
-                    <option value="{{ type_code }}" {% if selected_type == type_code %}selected{% endif %}>
-                        {{ type_name }}
-                    </option>
-                    {% endfor %}
-                </select>
-            </div>
+        <!-- Check-out Date -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Check Out</label>
+            <input type="date"
+                   name="check_out"
+                   value="{{ check_out }}"
+                   min="{{ today|date:'Y-m-d' }}"
+                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        </div>
 
-            <!-- Clear Filters -->
-            <div class="flex items-end">
-                <button type="reset" 
-                        class="bg-gray-100 text-gray-700 px-4 py-2 rounded-md hover:bg-gray-200">
-                    Clear Filters
-                </button>
-            </div>
-        </form>
-    </div>
+        <!-- Adults -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Adults</label>
+            <input type="number"
+                   name="adults"
+                   value="{{ adults }}"
+                   min="1"
+                   placeholder="Number of adults"
+                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        </div>
 
+        <!-- Children -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Children</label>
+            <input type="number"
+                   name="children"
+                   value="{{ children }}"
+                   min="0"
+                   placeholder="Number of children"
+                   class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+        </div>
+
+        <!-- Room Type -->
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Room Type</label>
+            <select name="room_type" 
+                    class="w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                <option value="">All Types</option>
+                {% for type_code, type_name in room_types %}
+                <option value="{{ type_code }}" {% if selected_type == type_code %}selected{% endif %}>
+                    {{ type_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Search Button -->
+        <div class="lg:col-span-5 flex justify-end space-x-4">
+            <a href="{% url 'rooms:room_list' %}" 
+               class="px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50">
+                Clear Filters
+            </a>
+            <button type="submit"
+                    class="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
+                Search Available Rooms
+            </button>
+        </div>
+    </form>
+</div>
     <!-- Room List Section -->
     <div id="room-list" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {% for room in rooms %}

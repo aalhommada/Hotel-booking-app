@@ -17,25 +17,60 @@ class RoomListView(ListView):
 
     def get_queryset(self):
         queryset = Room.objects.filter(is_active=True)
+
+        check_in = self.request.GET.get('check_in')
+        check_out = self.request.GET.get('check_out')
+        adults = self.request.GET.get('adults')
+        children = self.request.GET.get('children')
+        room_type = self.request.GET.get('room_type')
+
+
         search_query = self.request.GET.get('search', '')
-        room_type = self.request.GET.get('room_type', '')
-        
-        if search_query:
-            queryset = queryset.filter(
-                Q(name__icontains=search_query) |
-                Q(description__icontains=search_query)
-            )
-            
+ 
+        # Filter by room type if provided
         if room_type:
             queryset = queryset.filter(room_type=room_type)
-            
-        return queryset.select_related().prefetch_related('images')
+
+        # Filter by capacity if provided
+        if adults:
+            try:
+                adults = int(adults)
+                queryset = queryset.filter(capacity_adults__gte=adults)
+            except ValueError:
+                pass
+
+        if children:
+            try:
+                children = int(children)
+                queryset = queryset.filter(capacity_children__gte=children)
+            except ValueError:
+                pass
+
+        # Filter by availability if both dates are provided
+        if check_in and check_out:
+            try:
+                from django.db.models import Q
+                overlapping_bookings = Q(
+                    booking__check_in__lt=check_out,
+                    booking__check_out__gt=check_in,
+                    booking__status__in=['pending', 'confirmed']
+                )
+                queryset = queryset.exclude(overlapping_bookings)
+            except ValueError:
+                pass
+
+        return queryset.prefetch_related('images').distinct()
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context['room_types'] = Room.ROOM_TYPES
-        context['search_query'] = self.request.GET.get('search', '')
-        context['selected_type'] = self.request.GET.get('room_type', '')
+        context.update({
+            'room_types': Room.ROOM_TYPES,
+            'selected_type': self.request.GET.get('room_type', ''),
+            'check_in': self.request.GET.get('check_in', ''),
+            'check_out': self.request.GET.get('check_out', ''),
+            'adults': self.request.GET.get('adults', ''),
+            'children': self.request.GET.get('children', ''),
+        })
         return context
 
 class RoomDetailView(DetailView):

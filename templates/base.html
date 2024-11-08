@@ -8,6 +8,9 @@
     
     <!-- Tailwind CSS via CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Alpine js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     
     <!-- HTMX -->
     <script src="https://unpkg.com/htmx.org@1.9.10"></script>
@@ -16,29 +19,87 @@
 </head>
 <body class="bg-gray-100">
     <!-- Navigation -->
-    <nav class="bg-blue-600 text-white shadow-lg">
-        <div class="container mx-auto px-4 py-3">
-            <div class="flex justify-between items-center">
-                <div class="text-xl font-bold">HotelEase</div>
-                <div class="space-x-4">
+    <!-- templates/base.html -->
+<nav class="bg-blue-600 text-white shadow-lg">
+    <div class="container mx-auto px-4 py-3">
+        <div class="flex justify-between items-center">
+            <div class="flex items-center space-x-8">
+                <!-- Logo/Home -->
+                <a href="{% url 'core:home' %}" class="text-xl font-bold">HotelEase</a>
+                
+                <!-- Main Navigation -->
+                <div class="hidden md:flex space-x-6">
+                    <a href="{% url 'rooms:room_list' %}" class="hover:text-gray-200">Rooms</a>
+                    <a href="{% url 'core:contact' %}" class="hover:text-gray-200">Contact</a>
                     {% if user.is_authenticated %}
-                        {% if user.role == 'admin' or user.role == 'manager' %}
-                            <a href="{% url 'admin:index' %}" class="hover:text-gray-200">Admin</a>
+                        {% if user.role in 'admin,manager' %}
+                            <a href="{% url 'core:dashboard' %}" class="hover:text-gray-200">Dashboard</a>
                         {% endif %}
-                        {# <a href="{% url 'bookings:my_bookings' %}" class="hover:text-gray-200">My Bookings</a> #}
-                        <a href="{% url 'accounts:profile' %}" class="hover:text-gray-200">Profile</a>
-                        <form method="post" action="{% url 'accounts:logout' %}" class="inline">
-                            {% csrf_token %}
-                            <button type="submit" class="hover:text-gray-200">Logout</button>
-                        </form>
-                    {% else %}
-                        <a href="{% url 'accounts:login' %}" class="hover:text-gray-200">Login</a>
-                        <a href="{% url 'accounts:register' %}" class="hover:text-gray-200">Register</a>
                     {% endif %}
                 </div>
             </div>
+
+            <!-- User Navigation -->
+            <div class="flex items-center space-x-4">
+                {% if user.is_authenticated %}
+                    <!-- Notifications -->
+                    <a href="{% url 'core:notifications' %}" class="hover:text-gray-200 relative">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                  d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+                        </svg>
+                        {% if unread_notifications_count %}
+                        <span class="absolute -top-1 -right-1 bg-red-500 text-xs rounded-full w-4 h-4 flex items-center justify-center">
+                            {{ unread_notifications_count }}
+                        </span>
+                        {% endif %}
+                    </a>
+
+                    <!-- Bookings -->
+                    <a href="{% url 'bookings:booking_list' %}" class="hover:text-gray-200">
+                        My Bookings
+                    </a>
+
+                    <!-- User Menu -->
+                    <div class="relative" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center space-x-1 hover:text-gray-200">
+                            <span>{{ user.get_full_name|default:user.username }}</span>
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        
+                        <div x-show="open" 
+                             @click.away="open = false"
+                             class="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg py-1 text-gray-700">
+                            <a href="{% url 'accounts:profile' %}" 
+                               class="block px-4 py-2 hover:bg-gray-100">Profile</a>
+                            {% if user.is_staff %}
+                            <a href="{% url 'admin:index' %}" 
+                               class="block px-4 py-2 hover:bg-gray-100">Admin Panel</a>
+                            {% endif %}
+                            <hr class="my-1">
+                            <form method="post" action="{% url 'accounts:logout' %}" class="block">
+                                {% csrf_token %}
+                                <button type="submit" 
+                                        class="w-full text-left px-4 py-2 hover:bg-gray-100">
+                                    Logout
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                {% else %}
+                    <a href="{% url 'accounts:login' %}" class="hover:text-gray-200">Login</a>
+                    <a href="{% url 'accounts:register' %}" 
+                       class="bg-white text-blue-600 px-4 py-2 rounded-md hover:bg-gray-100">
+                        Register
+                    </a>
+                {% endif %}
+            </div>
         </div>
-    </nav>
+    </div>
+</nav>
 
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">

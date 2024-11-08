@@ -19,7 +19,7 @@ class LoginView(BaseLoginView):
         next_url = self.request.GET.get('next')
         if next_url:
             return next_url
-        return self.success_url
+        return reverse_lazy('core:home')
 
     def form_valid(self, form):
         remember_me = form.cleaned_data.get('remember_me')
