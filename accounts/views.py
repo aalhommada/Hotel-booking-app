@@ -42,7 +42,16 @@ class ProfileView(LoginRequiredMixin, DetailView):
     context_object_name = 'profile'
     
     def get_object(self):
+        # Ensure profile exists
+        UserProfile.objects.get_or_create(user=self.request.user)
         return self.request.user
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user_profile'] = self.request.user.profile  # Add profile to context
+        # Add recent bookings if you have them
+        context['recent_bookings'] = self.request.user.booking_set.order_by('-created_at')[:5]
+        return context
 
 class ProfileEditView(LoginRequiredMixin, UpdateView):
     model = User
@@ -51,8 +60,14 @@ class ProfileEditView(LoginRequiredMixin, UpdateView):
     success_url = reverse_lazy('accounts:profile')
     
     def get_object(self):
+        UserProfile.objects.get_or_create(user=self.request.user)
         return self.request.user
     
     def form_valid(self, form):
+        response = super().form_valid(form)
         messages.success(self.request, 'Profile updated successfully.')
-        return super().form_valid(form)
+        return response
+
+    def form_invalid(self, form):
+        messages.error(self.request, 'Please correct the errors below.')
+        return super().form_invalid(form)

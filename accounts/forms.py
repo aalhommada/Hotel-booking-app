@@ -32,24 +32,47 @@ class CustomUserCreationForm(UserCreationForm):
         return user
 
 class CustomUserChangeForm(UserChangeForm):
+    password = None  
     phone = forms.CharField(max_length=15, required=False)
-    address = forms.CharField(widget=forms.Textarea(attrs={'rows': 3}), required=False)
+    address = forms.CharField(
+        widget=forms.Textarea(attrs={
+            'rows': 3,
+            'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm'
+        }),
+        required=False
+    )
 
     class Meta:
         model = User
         fields = ('first_name', 'last_name', 'email')
+        widgets = {
+            'first_name': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm'
+            }),
+            'last_name': forms.TextInput(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm'
+            }),
+            'email': forms.EmailInput(attrs={
+                'class': 'mt-1 block w-full rounded-md border-gray-300 shadow-sm'
+            })
+        }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            field.widget.attrs['class'] = 'mt-1 block w-full rounded-md border-gray-300 shadow-sm'
-        
-        if self.instance.pk:
-            try:
-                self.fields['phone'].initial = self.instance.profile.phone
-                self.fields['address'].initial = self.instance.profile.address
-            except UserProfile.DoesNotExist:
-                pass
+        if self.instance and hasattr(self.instance, 'profile'):
+            self.fields['phone'].initial = self.instance.profile.phone
+            self.fields['address'].initial = self.instance.profile.address
+
+    def save(self, commit=True):
+        user = super().save(commit=False)
+        if commit:
+            user.save()
+            # Get or create profile
+            profile, created = UserProfile.objects.get_or_create(user=user)
+            profile.phone = self.cleaned_data.get('phone', '')
+            profile.address = self.cleaned_data.get('address', '')
+            profile.save()
+        return user
 
 class LoginForm(AuthenticationForm):
     username = forms.CharField(widget=forms.TextInput(attrs={

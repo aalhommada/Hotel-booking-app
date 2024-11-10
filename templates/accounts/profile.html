@@ -40,25 +40,30 @@
                     <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt class="text-sm font-medium text-gray-500">Phone number</dt>
                         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            {{ profile.phone|default:"Not provided" }}
+                            {{ profile.profile.phone|default:"Not provided" }}
                         </dd>
                     </div>
                     <div class="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt class="text-sm font-medium text-gray-500">Address</dt>
                         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            {{ profile.address|default:"Not provided"|linebreaks }}
+                            {{ profile.profile.address|default:"Not provided"|linebreaks }}
                         </dd>
                     </div>
                     <div class="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                         <dt class="text-sm font-medium text-gray-500">Account type</dt>
                         <dd class="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
-                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
-                                {% if profile.role == 'admin' %}bg-purple-100 text-purple-800
-                                {% elif profile.role == 'manager' %}bg-green-100 text-green-800
-                                {% elif profile.role == 'team' %}bg-blue-100 text-blue-800
-                                {% else %}bg-gray-100 text-gray-800{% endif %}">
-                                {{ profile.get_role_display }}
-                            </span>
+                            {% for group in profile.groups.all %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                    {% if group.name == 'Managers' %}bg-purple-100 text-purple-800
+                                    {% elif group.name == 'Team' %}bg-blue-100 text-blue-800
+                                    {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                    {{ group.name }}
+                                </span>
+                            {% empty %}
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">
+                                    Customer
+                                </span>
+                            {% endfor %}
                         </dd>
                     </div>
                 </dl>
