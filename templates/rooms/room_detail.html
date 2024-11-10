@@ -1,6 +1,11 @@
 <!-- templates/rooms/room_detail.html -->
 {% extends 'base.html' %}
 {% load static %}
+{% block extra_head %}
+<script>
+    window.bookedDates = {{ booked_dates|safe }};
+</script>
+{% endblock %}
 
 {% block title %}{{ room.name }} - Details{% endblock %}
 
@@ -112,67 +117,136 @@
         </div>
 
         <!-- Booking Sidebar -->
-        <div class="lg:col-span-1">
-            <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="text-xl font-semibold">Book This Room</h2>
-                    <p class="text-2xl font-bold text-blue-600">${{ room.price_per_night }}</p>
-                </div>
-
-                <form hx-get="{% url 'rooms:check_availability' room.pk %}"
-                      hx-target="#availability-message"
-                      hx-trigger="change"
-                      class="space-y-4">
-                    
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Check In</label>
-                        <input type="date" 
-                               name="check_in" 
-                               required
-                               min="{{ today|date:'Y-m-d' }}"
-                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Check Out</label>
-                        <input type="date" 
-                               name="check_out" 
-                               required
-                               min="{{ today|date:'Y-m-d' }}"
-                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                    </div>
-
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Guests</label>
-                        <div class="grid grid-cols-2 gap-4">
-                            <div>
-                                <input type="number" 
-                                       name="adults" 
-                                       placeholder="Adults"
-                                       min="1" 
-                                       max="{{ room.capacity_adults }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                            </div>
-                            <div>
-                                <input type="number" 
-                                       name="children" 
-                                       placeholder="Children"
-                                       min="0" 
-                                       max="{{ room.capacity_children }}"
-                                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="availability-message"></div>
-
-                    <button type="submit" 
-                            class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700">
-                        Check Availability
-                    </button>
-                </form>
+        <div class="bg-white rounded-lg shadow-md p-6 sticky top-6">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-xl font-semibold">Book This Room</h2>
+                <p class="text-2xl font-bold text-blue-600">${{ room.price_per_night }}<span class="text-sm text-gray-600">/night</span></p>
             </div>
+        
+            <form method="post" action="{% url 'rooms:book_room' room.pk %}" class="space-y-4">
+                {% csrf_token %}
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Check In</label>
+                    <input type="date" 
+                           id="check_in"
+                           name="check_in" 
+                           required
+                           min="{{ today }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                           hx-get="{% url 'rooms:check_availability' room.pk %}"
+                           hx-trigger="change"
+                           hx-target="#availability-message"
+                           hx-include="#check_out">
+                </div>
+        
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Check Out</label>
+                    <input type="date" 
+                           id="check_out"
+                           name="check_out" 
+                           required
+                           min="{{ today }}"
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                           hx-get="{% url 'rooms:check_availability' room.pk %}"
+                           hx-trigger="change"
+                           hx-target="#availability-message"
+                           hx-include="#check_in">
+                </div>
+        
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Adults</label>
+                        <input type="number" 
+                               name="adults" 
+                               required
+                               min="1" 
+                               max="{{ room.capacity_adults }}"
+                               value="1"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Children</label>
+                        <input type="number" 
+                               name="children" 
+                               min="0" 
+                               max="{{ room.capacity_children }}"
+                               value="0"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    </div>
+                </div>
+        
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Special Requests</label>
+                    <textarea name="special_requests" 
+                              rows="3" 
+                              class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"></textarea>
+                </div>
+        
+                <div id="availability-message" class="hidden"></div>
+        
+                <button type="submit" 
+                        id="booking-submit"
+                        class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed">
+                    Book Now
+                </button>
+            </form>
         </div>
     </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const checkInInput = document.getElementById('check_in');
+    const checkOutInput = document.getElementById('check_out');
+    const submitButton = document.getElementById('booking-submit');
+    const bookedDates = window.bookedDates || [];
+
+    // Function to disable dates in the datepicker
+    function disableBookedDates() {
+        const inputs = [checkInInput, checkOutInput];
+        inputs.forEach(input => {
+            input.addEventListener('input', function() {
+                const selectedDate = this.value;
+                if (bookedDates.includes(selectedDate)) {
+                    this.value = '';
+                    alert('This date is not available');
+                }
+            });
+        });
+    }
+
+    // Function to update checkout min date
+    checkInInput.addEventListener('change', function() {
+        if (this.value) {
+            const nextDay = new Date(this.value);
+            nextDay.setDate(nextDay.getDate() + 1);
+            checkOutInput.min = nextDay.toISOString().split('T')[0];
+            if (checkOutInput.value && new Date(checkOutInput.value) <= new Date(this.value)) {
+                checkOutInput.value = '';
+            }
+        }
+    });
+
+    // Handle availability check response
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+        if (evt.detail.elt.id === 'availability-message') {
+            const response = JSON.parse(evt.detail.xhr.response);
+            const messageDiv = document.getElementById('availability-message');
+            
+            messageDiv.classList.remove('hidden');
+            messageDiv.className = response.available 
+                ? 'p-4 mb-4 bg-green-100 text-green-700 rounded-md'
+                : 'p-4 mb-4 bg-red-100 text-red-700 rounded-md';
+            messageDiv.textContent = response.message;
+            
+            submitButton.disabled = !response.available;
+        }
+    });
+
+    disableBookedDates();
+});
+</script>
 {% endblock %}

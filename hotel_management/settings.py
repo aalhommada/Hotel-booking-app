@@ -45,8 +45,8 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-     'django_htmx.middleware.HtmxMiddleware',
-     'accounts.middleware.RoleMiddleware',
+    'django_htmx.middleware.HtmxMiddleware',
+    'accounts.middleware.RoleMiddleware',
 ]
 
 ROOT_URLCONF = 'hotel_management.urls'
@@ -136,3 +136,4 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'

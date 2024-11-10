@@ -1,4 +1,17 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block extra_head %}
+<script>
+    // Store booked dates as a global variable
+    window.bookedDates = {{ booked_dates|safe }};
+</script>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/booking.js' %}"></script>
+{% endblock %}
+
 {% block title %}Book Room{% endblock %}
 
 {% block content %}
@@ -15,10 +28,7 @@
         </div>
     </div>
 
-    <form method="post" class="space-y-4"
-          hx-get="{% url 'bookings:check_availability' room.pk %}"
-          hx-trigger="change from:#id_check_in,#id_check_out"
-          hx-target="#availability-message">
+    <form method="post" class="space-y-4">
         {% csrf_token %}
         
         <div class="grid grid-cols-2 gap-4">
@@ -26,7 +36,16 @@
                 <label for="{{ form.check_in.id_for_label }}" class="block text-sm font-medium text-gray-700">
                     Check-in Date
                 </label>
-                {{ form.check_in }}
+                <input type="date" 
+                       id="check_in"
+                       name="check_in" 
+                       required
+                       min="{{ today }}"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       hx-get="{% url 'rooms:check_availability' room.pk %}"
+                       hx-trigger="change"
+                       hx-target="#availability-message"
+                       hx-include="#check_out">
                 {{ form.check_in.errors }}
             </div>
             
@@ -34,7 +53,16 @@
                 <label for="{{ form.check_out.id_for_label }}" class="block text-sm font-medium text-gray-700">
                     Check-out Date
                 </label>
-                {{ form.check_out }}
+                <input type="date" 
+                       id="check_out"
+                       name="check_out" 
+                       required
+                       min="{{ today }}"
+                       class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500"
+                       hx-get="{% url 'rooms:check_availability' room.pk %}"
+                       hx-trigger="change"
+                       hx-target="#availability-message"
+                       hx-include="#check_in">
                 {{ form.check_out.errors }}
             </div>
         </div>
@@ -65,14 +93,16 @@
             {{ form.special_requests.errors }}
         </div>
 
-        <div id="availability-message" class="my-4"></div>
+        <div id="availability-message" class="hidden"></div>
 
         <div class="flex justify-end">
             <button type="submit" 
-                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
+                    id="booking-submit"
+                    class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed">
                 Confirm Booking
             </button>
         </div>
     </form>
 </div>
 {% endblock %}
+
