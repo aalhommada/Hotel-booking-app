@@ -144,18 +144,20 @@ class RoomDetailView(DetailView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        # Get booked dates
+        
+        # Get all booked dates for this room
         booked_dates = []
-        bookings = self.object.booking_set.filter(
-            status__in=['pending', 'confirmed'],
-            check_out__gte=datetime.now().date()
+        bookings = Booking.objects.filter(
+            room=self.object,
+            status__in=['confirmed', 'pending'],
+            check_out__gte=datetime.now().date()  # Only future bookings
         )
         
         for booking in bookings:
-            current = booking.check_in
-            while current <= booking.check_out:
-                booked_dates.append(current.strftime('%Y-%m-%d'))
-                current += timedelta(days=1)
+            current_date = booking.check_in
+            while current_date <= booking.check_out:
+                booked_dates.append(current_date.strftime('%Y-%m-%d'))
+                current_date += timedelta(days=1)
         
         context['booked_dates'] = json.dumps(booked_dates)
         context['today'] = datetime.now().date().strftime('%Y-%m-%d')
@@ -249,34 +251,40 @@ def check_room_availability(request, pk):
     check_in = request.GET.get('check_in')
     check_out = request.GET.get('check_out')
     
+    if not all([check_in, check_out]):
+        return JsonResponse({
+            'available': False,
+            'message': 'Please select both check-in and check-out dates'
+        })
+    
     try:
-        room = Room.objects.get(pk=pk)
         check_in_date = datetime.strptime(check_in, '%Y-%m-%d').date()
         check_out_date = datetime.strptime(check_out, '%Y-%m-%d').date()
         
-        # Check if dates are valid
-        if check_in_date >= check_out_date:
+        if check_out_date <= check_in_date:
             return JsonResponse({
                 'available': False,
                 'message': 'Check-out date must be after check-in date'
             })
-            
+
         # Check for overlapping bookings
-        is_available = not room.booking_set.filter(
-            status__in=['pending', 'confirmed'],
-            check_in__lt=check_out_date,
-            check_out__gt=check_in_date
+        overlapping_bookings = Booking.objects.filter(
+            room_id=pk,
+            status__in=['confirmed', 'pending'],
+            check_in__lte=check_out_date,
+            check_out__gte=check_in_date
         ).exists()
         
         return JsonResponse({
-            'available': is_available,
-            'message': 'Room is available' if is_available else 'Room is not available for selected dates'
+            'available': not overlapping_bookings,
+            'message': 'Room is available for selected dates' if not overlapping_bookings 
+                      else 'Room is not available for selected dates'
         })
-        
-    except (Room.DoesNotExist, ValueError):
+    
+    except ValueError:
         return JsonResponse({
             'available': False,
-            'message': 'Invalid request'
+            'message': 'Invalid date format'
         })
     
 
