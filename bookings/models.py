@@ -1,4 +1,3 @@
-# bookings/models.py
 from datetime import datetime
 from django.db import models
 from django.conf import settings

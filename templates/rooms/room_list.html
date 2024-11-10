@@ -1,4 +1,3 @@
-<!-- templates/rooms/room_list.html -->
 {% extends 'base.html' %}
 {% block title %}Available Rooms{% endblock %}
 
@@ -165,37 +164,31 @@
     </div>
 
     <!-- Pagination -->
-    {% if is_paginated %}
-    <div class="mt-8 flex justify-center">
-        <nav class="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
-            {% if page_obj.has_previous %}
-            <a href="?page={{ page_obj.previous_page_number }}"
-               class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                Previous
-            </a>
-            {% endif %}
+    {% if page_obj.has_previous %}
+    <a href="?page={{ page_obj.previous_page_number }}&check_in={{ check_in }}&check_out={{ check_out }}&adults={{ adults }}&children={{ children }}&room_type={{ selected_type }}"
+    class="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+        Previous
+    </a>
+    {% endif %}
 
-            {% for num in page_obj.paginator.page_range %}
-                {% if page_obj.number == num %}
-                <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
-                    {{ num }}
-                </span>
-                {% else %}
-                <a href="?page={{ num }}"
-                   class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
-                    {{ num }}
-                </a>
-                {% endif %}
-            {% endfor %}
+    {% for num in page_obj.paginator.page_range %}
+        {% if page_obj.number == num %}
+        <span class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-blue-50 text-sm font-medium text-blue-600">
+            {{ num }}
+        </span>
+        {% else %}
+        <a href="?page={{ num }}&check_in={{ check_in }}&check_out={{ check_out }}&adults={{ adults }}&children={{ children }}&room_type={{ selected_type }}"
+        class="relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50">
+            {{ num }}
+        </a>
+        {% endif %}
+    {% endfor %}
 
-            {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}"
-               class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
-                Next
-            </a>
-            {% endif %}
-        </nav>
-    </div>
+    {% if page_obj.has_next %}
+    <a href="?page={{ page_obj.next_page_number }}&check_in={{ check_in }}&check_out={{ check_out }}&adults={{ adults }}&children={{ children }}&room_type={{ selected_type }}"
+    class="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium text-gray-500 hover:bg-gray-50">
+        Next
+    </a>
     {% endif %}
 </div>
 {% endblock %}
