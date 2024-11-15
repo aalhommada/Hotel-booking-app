@@ -36,13 +36,13 @@ document.addEventListener('DOMContentLoaded', function() {
         if (evt.detail.elt.id === 'availability-message') {
             const response = JSON.parse(evt.detail.xhr.response);
             const messageDiv = document.getElementById('availability-message');
-            
+
             messageDiv.classList.remove('hidden');
-            messageDiv.className = response.available 
+            messageDiv.className = response.available
                 ? 'p-4 mb-4 bg-green-100 text-green-700 rounded-md'
                 : 'p-4 mb-4 bg-red-100 text-red-700 rounded-md';
             messageDiv.textContent = response.message;
-            
+
             submitButton.disabled = !response.available;
         }
     });

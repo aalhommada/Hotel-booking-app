@@ -1,5 +1,6 @@
-from django.db import models
 from django.conf import settings
+from django.db import models
+
 
 class Contact(models.Model):
     name = models.CharField(max_length=100)
@@ -12,11 +13,12 @@ class Contact(models.Model):
     def __str__(self):
         return f"{self.subject} - {self.name}"
 
+
 class Notification(models.Model):
     NOTIFICATION_TYPES = (
-        ('booking', 'Booking'),
-        ('system', 'System'),
-        ('info', 'Information'),
+        ("booking", "Booking"),
+        ("system", "System"),
+        ("info", "Information"),
     )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
@@ -27,16 +29,7 @@ class Notification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        ordering = ['-created_at']
+        ordering = ["-created_at"]
 
     def __str__(self):
         return f"{self.title} - {self.user.username}"
-
-class SiteSetting(models.Model):
-    key = models.CharField(max_length=50, unique=True)
-    value = models.TextField()
-    description = models.TextField(blank=True)
-    updated_at = models.DateTimeField(auto_now=True)
-
-    def __str__(self):
-        return self.key

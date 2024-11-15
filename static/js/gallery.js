@@ -1,7 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const mainImage = document.getElementById('main-image');
     const thumbnails = document.querySelectorAll('.gallery-thumbnail');
-    
+
     thumbnails.forEach(thumb => {
         thumb.addEventListener('click', function() {
             // Update main image

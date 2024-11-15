@@ -1,25 +1,39 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from unfold.admin import ModelAdmin
+
 from .models import UserProfile
+
 
 class UserProfileInline(admin.StackedInline):
     model = UserProfile
     can_delete = False
-    verbose_name_plural = 'Profile'
+    verbose_name_plural = "Profile"
 
-class CustomUserAdmin(UserAdmin):
+
+class CustomUserAdmin(ModelAdmin):
     inlines = (UserProfileInline,)
-    list_display = ('username', 'email', 'first_name', 'last_name', 'is_staff', 'get_groups')
-    
+    list_display = (
+        "username",
+        "email",
+        "first_name",
+        "last_name",
+        "is_staff",
+        "get_groups",
+    )
+
     def get_groups(self, obj):
         return ", ".join([group.name for group in obj.groups.all()])
-    get_groups.short_description = 'Groups'
+
+    get_groups.short_description = "Groups"  # type: ignore
 
     def save_model(self, request, obj, form, change):
         if not change:  # If creating a new user
             # If user is assigned to any group with permissions
-            if form.cleaned_data.get('groups') and any(group.permissions.exists() for group in form.cleaned_data['groups']):
+            if form.cleaned_data.get("groups") and any(
+                group.permissions.exists() for group in form.cleaned_data["groups"]
+            ):
                 obj.is_staff = True
         super().save_model(request, obj, form, change)
 
@@ -54,13 +68,14 @@ class CustomUserAdmin(UserAdmin):
         # Customize fieldsets based on user permissions
         if request.user.is_superuser:
             return super().get_fieldsets(request, obj)
-        
+
         # Limited fields for non-superusers
         return (
-            (None, {'fields': ('username', 'password')}),
-            ('Personal info', {'fields': ('first_name', 'last_name', 'email')}),
-            ('Permissions', {'fields': ('is_active', 'groups')}),
+            (None, {"fields": ("username", "password")}),
+            ("Personal info", {"fields": ("first_name", "last_name", "email")}),
+            ("Permissions", {"fields": ("is_active", "groups")}),
         )
+
 
 # Re-register UserAdmin
 admin.site.unregister(User)

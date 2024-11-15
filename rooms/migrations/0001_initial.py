@@ -11,55 +11,127 @@ class Migration(migrations.Migration):
 
     initial = True
 
-    dependencies = [
-    ]
+    dependencies: list = []
 
     operations = [
         migrations.CreateModel(
-            name='Room',
+            name="Room",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('name', models.CharField(max_length=100)),
-                ('room_number', models.CharField(max_length=10, unique=True)),
-                ('floor', models.IntegerField()),
-                ('room_type', models.CharField(choices=[('single', 'Single'), ('double', 'Double'), ('suite', 'Suite'), ('family', 'Family')], max_length=20)),
-                ('bed_type', models.CharField(choices=[('single', 'Single'), ('double', 'Double'), ('queen', 'Queen'), ('king', 'King')], max_length=20)),
-                ('price_per_night', models.DecimalField(decimal_places=2, max_digits=10, validators=[django.core.validators.MinValueValidator(0)])),
-                ('capacity_adults', models.IntegerField(validators=[django.core.validators.MinValueValidator(1)])),
-                ('capacity_children', models.IntegerField(validators=[django.core.validators.MinValueValidator(0)])),
-                ('description', models.TextField(blank=True)),
-                ('has_wifi', models.BooleanField(default=True)),
-                ('has_ac', models.BooleanField(default=True)),
-                ('has_heating', models.BooleanField(default=True)),
-                ('has_tv', models.BooleanField(default=True)),
-                ('has_bathroom', models.BooleanField(default=True)),
-                ('has_balcony', models.BooleanField(default=False)),
-                ('has_minibar', models.BooleanField(default=False)),
-                ('has_desk', models.BooleanField(default=True)),
-                ('has_closet', models.BooleanField(default=True)),
-                ('has_safe', models.BooleanField(default=False)),
-                ('is_active', models.BooleanField(default=True)),
-                ('created_at', models.DateTimeField(default=django.utils.timezone.now)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                ("name", models.CharField(max_length=100)),
+                ("room_number", models.CharField(max_length=10, unique=True)),
+                ("floor", models.IntegerField()),
+                (
+                    "room_type",
+                    models.CharField(
+                        choices=[
+                            ("single", "Single"),
+                            ("double", "Double"),
+                            ("suite", "Suite"),
+                            ("family", "Family"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "bed_type",
+                    models.CharField(
+                        choices=[
+                            ("single", "Single"),
+                            ("double", "Double"),
+                            ("queen", "Queen"),
+                            ("king", "King"),
+                        ],
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "price_per_night",
+                    models.DecimalField(
+                        decimal_places=2,
+                        max_digits=10,
+                        validators=[django.core.validators.MinValueValidator(0)],
+                    ),
+                ),
+                (
+                    "capacity_adults",
+                    models.IntegerField(
+                        validators=[django.core.validators.MinValueValidator(1)]
+                    ),
+                ),
+                (
+                    "capacity_children",
+                    models.IntegerField(
+                        validators=[django.core.validators.MinValueValidator(0)]
+                    ),
+                ),
+                ("description", models.TextField(blank=True)),
+                ("has_wifi", models.BooleanField(default=True)),
+                ("has_ac", models.BooleanField(default=True)),
+                ("has_heating", models.BooleanField(default=True)),
+                ("has_tv", models.BooleanField(default=True)),
+                ("has_bathroom", models.BooleanField(default=True)),
+                ("has_balcony", models.BooleanField(default=False)),
+                ("has_minibar", models.BooleanField(default=False)),
+                ("has_desk", models.BooleanField(default=True)),
+                ("has_closet", models.BooleanField(default=True)),
+                ("has_safe", models.BooleanField(default=False)),
+                ("is_active", models.BooleanField(default=True)),
+                ("created_at", models.DateTimeField(default=django.utils.timezone.now)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
             ],
             options={
-                'ordering': ['room_number'],
+                "ordering": ["room_number"],
             },
         ),
         migrations.CreateModel(
-            name='RoomImage',
+            name="RoomImage",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('image', imagekit.models.fields.ProcessedImageField(upload_to='room_images')),
-                ('format', models.CharField(choices=[('JPEG', 'JPEG'), ('PNG', 'PNG'), ('WEBP', 'WebP')], default='JPEG', help_text='Select the output format for this image', max_length=10)),
-                ('is_primary', models.BooleanField(default=False)),
-                ('caption', models.CharField(blank=True, max_length=200)),
-                ('order', models.IntegerField(default=0)),
-                ('uploaded_at', models.DateTimeField(auto_now_add=True)),
-                ('room', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='images', to='rooms.room')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "image",
+                    imagekit.models.fields.ProcessedImageField(upload_to="room_images"),
+                ),
+                (
+                    "format",
+                    models.CharField(
+                        choices=[("JPEG", "JPEG"), ("PNG", "PNG"), ("WEBP", "WebP")],
+                        default="JPEG",
+                        help_text="Select the output format for this image",
+                        max_length=10,
+                    ),
+                ),
+                ("is_primary", models.BooleanField(default=False)),
+                ("caption", models.CharField(blank=True, max_length=200)),
+                ("order", models.IntegerField(default=0)),
+                ("uploaded_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "room",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="images",
+                        to="rooms.room",
+                    ),
+                ),
             ],
             options={
-                'ordering': ['order', 'uploaded_at'],
+                "ordering": ["order", "uploaded_at"],
             },
         ),
     ]

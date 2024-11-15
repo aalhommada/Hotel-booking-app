@@ -15,7 +15,7 @@
 
             <form method="POST" enctype="multipart/form-data" class="space-y-6">
                 {% csrf_token %}
-                
+
                 {% if form.errors %}
                 <div class="bg-red-50 border-l-4 border-red-500 p-4 mb-6">
                     <div class="flex">
@@ -132,7 +132,7 @@
                             </div>
                         {% endfor %}
                     </div>
-                    <button type="button" 
+                    <button type="button"
                             class="mt-4 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50"
                             onclick="addImageForm()">
                         Add Another Image
@@ -141,7 +141,7 @@
 
                 <!-- Submit Buttons -->
                 <div class="flex justify-end space-x-4">
-                    <a href="{% url 'rooms:room_manage' %}" 
+                    <a href="{% url 'rooms:room_manage' %}"
                        class="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50">
                         Cancel
                     </a>
@@ -162,24 +162,24 @@
         const formset = document.getElementById('image-formset');
         const forms = formset.getElementsByClassName('border');
         const totalForms = document.getElementById('id_images-TOTAL_FORMS');
-        
+
         // Clone the first form
         const newForm = forms[0].cloneNode(true);
-        
+
         // Update form index
         const formIdx = forms.length;
         newForm.innerHTML = newForm.innerHTML.replace(/-0-/g, `-${formIdx}-`);
-        
+
         // Clear inputs
         newForm.querySelectorAll('input').forEach(input => {
             if (input.type !== 'hidden') {
                 input.value = '';
             }
         });
-        
+
         // Update total forms count
         totalForms.value = formIdx + 1;
-        
+
         // Add new form to formset
         formset.appendChild(newForm);
     }

@@ -15,10 +15,10 @@
                 </a>
             </p>
         </div>
-        
+
         <form class="mt-8 space-y-6" method="POST">
             {% csrf_token %}
-            
+
             {% if form.non_field_errors %}
             <div class="rounded-md bg-red-50 p-4">
                 <div class="flex">
@@ -41,7 +41,7 @@
                         <p class="mt-2 text-red-600 text-sm">{{ form.username.errors.0 }}</p>
                     {% endif %}
                 </div>
-                
+
                 <div>
                     <label for="{{ form.password.id_for_label }}" class="sr-only">Password</label>
                     {{ form.password }}

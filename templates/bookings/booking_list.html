@@ -5,15 +5,15 @@
 <div class="container mx-auto px-4 py-8">
     <div class="mb-8">
         <h1 class="text-2xl font-bold text-gray-900">My Bookings</h1>
-        
+
         <!-- Status Filter -->
         <div class="mt-4 flex flex-wrap gap-2">
-            <a href="{% url 'bookings:booking_list' %}" 
+            <a href="{% url 'bookings:booking_list' %}"
                class="px-4 py-2 rounded-md {% if not current_status %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %}">
                 All
             </a>
             {% for status_code, status_label in status_choices %}
-            <a href="?status={{ status_code }}" 
+            <a href="?status={{ status_code }}"
                class="px-4 py-2 rounded-md {% if current_status == status_code %}bg-blue-600 text-white{% else %}bg-gray-100 text-gray-700{% endif %}">
                 {{ status_label }}
             </a>
@@ -77,7 +77,7 @@
         <div class="text-center py-12 bg-white rounded-lg shadow">
             <h3 class="text-lg font-medium text-gray-900">No bookings found</h3>
             <p class="mt-2 text-sm text-gray-500">Start browsing our rooms to make your first booking!</p>
-            <a href="{% url 'rooms:room_list' %}" 
+            <a href="{% url 'rooms:room_list' %}"
                class="mt-4 inline-block px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">
                 Browse Rooms
             </a>
