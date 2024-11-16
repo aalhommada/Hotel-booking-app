@@ -28,6 +28,25 @@ class CustomUserAdmin(ModelAdmin):
 
     get_groups.short_description = "Groups"  # type: ignore
 
+    add_fieldsets = (
+        (
+            None,
+            {
+                "classes": ("wide",),
+                "fields": (
+                    "username",
+                    "password",
+                    "email",
+                    "first_name",
+                    "last_name",
+                    "is_staff",
+                    "is_active",
+                    "groups",
+                ),
+            },
+        ),
+    )
+
     def save_model(self, request, obj, form, change):
         if not change:  # If creating a new user
             # If user is assigned to any group with permissions
