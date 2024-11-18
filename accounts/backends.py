@@ -7,10 +7,14 @@ from django.db.models import Q
 class EmailOrUsernameModelBackend(ModelBackend):
     def authenticate(self, request, username=None, password=None, **kwargs):
         try:
-            # Check if username is an email or username
-            user = User.objects.get(Q(username=username) | Q(email=username))
+            # Try to fetch the user
+            user = User.objects.get(
+                Q(username__iexact=username) | Q(email__iexact=username)
+            )
+            # Check if the password is correct
             if user.check_password(password):
                 return user
+            return None
         except User.DoesNotExist:
             return None
 

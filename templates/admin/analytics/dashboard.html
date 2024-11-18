@@ -1,0 +1,32 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block content %}
+<div class="mt-5">
+    <h2 class="text-xl font-semibold mb-4">Booking Analytics Dashboard</h2>
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mx-4">
+        <!-- Revenue Chart -->
+        <div class="bg-white p-5 rounded-lg shadow">
+            <h3 class="text-lg font-medium mb-4">Monthly Revenue & Bookings</h3>
+            <div class="relative h-[400px] w-full">
+                <canvas id="revenueChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Occupancy Chart -->
+        <div class="bg-white p-5 rounded-lg shadow">
+            <h3 class="text-lg font-medium mb-4">Room Occupancy Rate</h3>
+            <div class="relative h-[400px] w-full">
+                <canvas id="occupancyChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+<script>
+    // Your existing chart JavaScript code here
+    // (Same as before)
+</script>
+{% endblock %}

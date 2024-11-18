@@ -1,0 +1,141 @@
+{% extends "admin/change_list.html" %}
+{% load static %}
+
+{% block content %}
+    <!-- Charts section first -->
+    <div class="mt-5">
+        <h2 class="text-xl font-semibold mb-4">Booking Analytics</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mx-4">
+            <!-- Revenue Chart -->
+            <div class="bg-white p-5 rounded-lg shadow">
+                <h3 class="text-lg font-medium mb-4">Monthly Revenue & Bookings</h3>
+                <div class="relative h-[400px] w-full">
+                    <canvas id="revenueChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Occupancy Chart -->
+            <div class="bg-white p-5 rounded-lg shadow">
+                <h3 class="text-lg font-medium mb-4">Room Occupancy Rate</h3>
+                <div class="relative h-[400px] w-full">
+                    <canvas id="occupancyChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Regular change list content after -->
+    {{ block.super }}
+
+    <!-- Chart.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Revenue & Bookings Chart
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            const chartData = {{ chart_data|safe }};
+
+            new Chart(revenueCtx, {
+                type: 'bar',
+                data: {
+                    labels: chartData.labels,
+                    datasets: [{
+                        label: 'Monthly Revenue',
+                        data: chartData.revenue,
+                        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+                        borderColor: 'rgba(54, 162, 235, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y'
+                    }, {
+                        label: 'Number of Bookings',
+                        data: chartData.bookings,
+                        backgroundColor: 'rgba(255, 99, 132, 0.5)',
+                        borderColor: 'rgba(255, 99, 132, 1)',
+                        borderWidth: 1,
+                        yAxisID: 'y1',
+                        type: 'bar'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: true,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            type: 'linear',
+                            display: true,
+                            position: 'left',
+                            title: {
+                                display: true,
+                                text: 'Revenue'
+                            }
+                        },
+                        y1: {
+                            beginAtZero: true,
+                            type: 'linear',
+                            display: true,
+                            position: 'right',
+                            title: {
+                                display: true,
+                                text: 'Number of Bookings'
+                            },
+                            grid: {
+                                drawOnChartArea: false
+                            },
+                            ticks: {
+                                stepSize: 1,
+                                precision: 0
+                            }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            enabled: true,
+                            mode: 'index',
+                            intersect: false
+                        }
+                    }
+                }
+            });
+
+            // Occupancy Chart
+            const occupancyCtx = document.getElementById('occupancyChart').getContext('2d');
+            const occupancyData = {{ occupancy_data|safe }};
+
+            if (occupancyData) {
+                new Chart(occupancyCtx, {
+                    type: 'line',
+                    data: {
+                        labels: occupancyData.labels,
+                        datasets: [{
+                            label: 'Occupancy Rate (%)',
+                            data: occupancyData.rates,
+                            fill: true,
+                            backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                            borderColor: 'rgba(75, 192, 192, 1)',
+                            tension: 0.1
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: true,
+                        scales: {
+                            y: {
+                                beginAtZero: true,
+                                max: 100,
+                                title: {
+                                    display: true,
+                                    text: 'Occupancy Rate (%)'
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}

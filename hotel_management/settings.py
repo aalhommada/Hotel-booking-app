@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     "rooms.apps.RoomsConfig",
     "bookings.apps.BookingsConfig",
     "core.apps.CoreConfig",
+    "analytics",
 ]
 
 MIDDLEWARE = [

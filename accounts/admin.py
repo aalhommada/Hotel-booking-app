@@ -12,7 +12,7 @@ class UserProfileInline(admin.StackedInline):
     verbose_name_plural = "Profile"
 
 
-class CustomUserAdmin(ModelAdmin):
+class CustomUserAdmin(UserAdmin, ModelAdmin):
     inlines = (UserProfileInline,)
     list_display = (
         "username",
@@ -35,7 +35,8 @@ class CustomUserAdmin(ModelAdmin):
                 "classes": ("wide",),
                 "fields": (
                     "username",
-                    "password",
+                    "password1",
+                    "password2",
                     "email",
                     "first_name",
                     "last_name",
@@ -45,6 +46,24 @@ class CustomUserAdmin(ModelAdmin):
                 ),
             },
         ),
+    )
+
+    fieldsets = (
+        (None, {"fields": ("username", "password")}),
+        ("Personal info", {"fields": ("first_name", "last_name", "email")}),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_staff",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                ),
+            },
+        ),
+        ("Important dates", {"fields": ("last_login", "date_joined")}),
     )
 
     def save_model(self, request, obj, form, change):

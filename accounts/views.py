@@ -17,11 +17,22 @@ class LoginView(BaseLoginView):
     success_url = reverse_lazy("rooms:room_list")
     redirect_authenticated_user = True
 
+    def form_valid(self, form):
+        remember_me = form.cleaned_data.get("remember_me")
+        if not remember_me:
+            # Session expires when browser closes
+            self.request.session.set_expiry(0)
+        return super().form_valid(form)
+
     def get_success_url(self):
         next_url = self.request.GET.get("next")
         if next_url:
             return next_url
         return reverse_lazy("core:home")
+
+    def form_invalid(self, form):
+        messages.error(self.request, "Invalid username or password")
+        return super().form_invalid(form)
 
 
 class LogoutView(BaseLogoutView):

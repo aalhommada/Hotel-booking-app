@@ -6,6 +6,7 @@ from django.contrib.auth.forms import (
     UserCreationForm,
 )
 from django.contrib.auth.models import User
+from django.contrib.auth.password_validation import validate_password
 
 from .models import UserProfile
 
@@ -33,9 +34,16 @@ class CustomUserCreationForm(UserCreationForm):
                 "mt-1 block w-full rounded-md border-gray-300 shadow-sm"
             )
 
+    def clean_email(self):
+        email = self.cleaned_data.get("email")
+        if User.objects.filter(email=email).exists():
+            raise forms.ValidationError("Email already exists")
+        return email
+
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data["email"]
+        user.set_password(self.cleaned_data["password1"])
 
         if commit:
             user.save()
@@ -117,3 +125,20 @@ class LoginForm(AuthenticationForm):
         )
     )
     remember_me = forms.BooleanField(required=False, initial=False)
+
+    def clean(self):
+        cleaned_data = super().clean()
+        username = cleaned_data.get("username")
+        password = cleaned_data.get("password")
+
+        if username and password:
+            # Try to authenticate with email
+            if "@" in username:
+                try:
+                    user = User.objects.get(email=username)
+                    username = user.username
+                    cleaned_data["username"] = username
+                except User.DoesNotExist:
+                    raise forms.ValidationError("Invalid email or password")
+
+        return cleaned_data
