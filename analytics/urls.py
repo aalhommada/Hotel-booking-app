@@ -6,4 +6,5 @@ app_name = "analytics"
 
 urlpatterns = [
     path("dashboard/", views.dashboard_view, name="dashboard"),
+    path("year-data/<int:year>/", views.get_year_data, name="year_data"),
 ]

@@ -2,11 +2,25 @@
 {% load static %}
 
 {% block content %}
-    <!-- Charts section first -->
+    <div class="mt-5 mx-4">
+        <div class="bg-white p-4 rounded-lg shadow mb-4">
+            <form id="year-form" class="flex items-center space-x-4">
+                <label for="selected_year" class="font-medium">Select Year:</label>
+                <select name="selected_year" id="selected_year"
+                        class="rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                    {% for year in available_years %}
+                        <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>
+                            {{ year }}
+                        </option>
+                    {% endfor %}
+                </select>
+            </form>
+        </div>
+    </div>
+
     <div class="mt-5">
-        <h2 class="text-xl font-semibold mb-4">Booking Analytics</h2>
+        <h2 class="text-xl font-semibold mb-4">Booking Analytics for <span id="yearDisplay">{{ selected_year }}</span></h2>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-5 mx-4">
-            <!-- Revenue Chart -->
             <div class="bg-white p-5 rounded-lg shadow">
                 <h3 class="text-lg font-medium mb-4">Monthly Revenue & Bookings</h3>
                 <div class="relative h-[400px] w-full">
@@ -14,7 +28,6 @@
                 </div>
             </div>
 
-            <!-- Occupancy Chart -->
             <div class="bg-white p-5 rounded-lg shadow">
                 <h3 class="text-lg font-medium mb-4">Room Occupancy Rate</h3>
                 <div class="relative h-[400px] w-full">
@@ -24,31 +37,32 @@
         </div>
     </div>
 
-    <!-- Regular change list content after -->
     {{ block.super }}
 
-    <!-- Chart.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Revenue & Bookings Chart
-            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-            const chartData = {{ chart_data|safe }};
+        let revenueChart = null;
+        let occupancyChart = null;
 
-            new Chart(revenueCtx, {
+        function updateCharts(data) {
+            if (revenueChart) revenueChart.destroy();
+            if (occupancyChart) occupancyChart.destroy();
+
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            revenueChart = new Chart(revenueCtx, {
                 type: 'bar',
                 data: {
-                    labels: chartData.labels,
+                    labels: data.chart_data.labels,
                     datasets: [{
                         label: 'Monthly Revenue',
-                        data: chartData.revenue,
+                        data: data.chart_data.revenue,
                         backgroundColor: 'rgba(54, 162, 235, 0.5)',
                         borderColor: 'rgba(54, 162, 235, 1)',
                         borderWidth: 1,
                         yAxisID: 'y'
                     }, {
                         label: 'Number of Bookings',
-                        data: chartData.bookings,
+                        data: data.chart_data.bookings,
                         backgroundColor: 'rgba(255, 99, 132, 0.5)',
                         borderColor: 'rgba(255, 99, 132, 1)',
                         borderWidth: 1,
@@ -91,29 +105,19 @@
                                 precision: 0
                             }
                         }
-                    },
-                    plugins: {
-                        tooltip: {
-                            enabled: true,
-                            mode: 'index',
-                            intersect: false
-                        }
                     }
                 }
             });
 
-            // Occupancy Chart
-            const occupancyCtx = document.getElementById('occupancyChart').getContext('2d');
-            const occupancyData = {{ occupancy_data|safe }};
-
-            if (occupancyData) {
-                new Chart(occupancyCtx, {
+            if (data.occupancy_data) {
+                const occupancyCtx = document.getElementById('occupancyChart').getContext('2d');
+                occupancyChart = new Chart(occupancyCtx, {
                     type: 'line',
                     data: {
-                        labels: occupancyData.labels,
+                        labels: data.occupancy_data.labels,
                         datasets: [{
                             label: 'Occupancy Rate (%)',
-                            data: occupancyData.rates,
+                            data: data.occupancy_data.rates,
                             fill: true,
                             backgroundColor: 'rgba(75, 192, 192, 0.2)',
                             borderColor: 'rgba(75, 192, 192, 1)',
@@ -136,6 +140,27 @@
                     }
                 });
             }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const yearSelect = document.getElementById('selected_year');
+            const initialData = {
+                chart_data: {{ chart_data|safe }},
+                occupancy_data: {{ occupancy_data|safe }}
+            };
+            updateCharts(initialData);
+
+            yearSelect.addEventListener('change', function() {
+                const year = this.value;
+                document.getElementById('yearDisplay').textContent = year;
+
+                fetch(`/analytics/year-data/${year}/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        updateCharts(data);
+                    })
+                    .catch(error => console.error('Error:', error));
+            });
         });
     </script>
 {% endblock %}
