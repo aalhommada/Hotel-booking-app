@@ -10,7 +10,14 @@ from .models import Booking
 class BookingCreateForm(forms.ModelForm):
     class Meta:
         model = Booking
-        fields = ["check_in", "check_out", "adults", "children", "special_requests"]
+        fields = [
+            "room",
+            "check_in",
+            "check_out",
+            "adults",
+            "children",
+            "special_requests",
+        ]
         widgets = {
             "room": forms.HiddenInput(),
             "check_in": forms.DateInput(
@@ -47,6 +54,7 @@ class BookingCreateForm(forms.ModelForm):
         self.room = kwargs.pop("room", None)
         super().__init__(*args, **kwargs)
         if self.room:
+            self.fields["room"].initial = self.room
             self.fields["adults"].widget.attrs.update(
                 {"min": "1", "max": str(self.room.capacity_adults)}
             )
@@ -56,6 +64,9 @@ class BookingCreateForm(forms.ModelForm):
 
     def clean(self):
         cleaned_data = super().clean()
+        if not cleaned_data.get("room") and self.room:
+            cleaned_data["room"] = self.room
+            self.instance.room = self.room
         check_in = cleaned_data.get("check_in")
         check_out = cleaned_data.get("check_out")
         adults = cleaned_data.get("adults")

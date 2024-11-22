@@ -25,10 +25,7 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
         room = get_object_or_404(Room, pk=self.kwargs["room_pk"])
         kwargs["room"] = room
 
-        # Initialize form data if it's not already set
-        if kwargs.get("data") is None:
-            kwargs["initial"] = {"room": room.pk}
-        else:
+        if kwargs.get("data"):
             data = kwargs["data"].copy()
             data["room"] = room.pk
             kwargs["data"] = data
@@ -55,6 +52,8 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
         return context
 
     def form_valid(self, form):
+        print("\nForm validation succeeded:")
+        print(f"Form cleaned data: {form.cleaned_data}")
         form.instance.user = self.request.user
         form.instance.status = "pending"
         response = super().form_valid(form)
@@ -63,6 +62,11 @@ class BookingCreateView(LoginRequiredMixin, CreateView):
             "Your booking has been created successfully! We will confirm it shortly.",
         )
         return response
+
+    def form_invalid(self, form):
+        print("\nForm validation failed:")
+        print(f"Form errors: {form.errors}")
+        return super().form_invalid(form)
 
     def get_success_url(self):
         return reverse_lazy("bookings:booking_detail", kwargs={"pk": self.object.pk})

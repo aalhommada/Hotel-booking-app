@@ -146,3 +146,92 @@ class BookingStatisticsAdmin(ModelAdmin):
             )
 
         return super().changelist_view(request, extra_context=extra_context)
+
+    def get_chart_data(self):
+        try:
+            # Default to current year
+            selected_year = timezone.now().year
+
+            # Set date range for selected year
+            start_date = timezone.datetime(selected_year, 1, 1).date()
+            end_date = timezone.datetime(selected_year, 12, 31).date()
+
+            # Get monthly stats
+            monthly_stats = (
+                Booking.objects.filter(
+                    check_in__gte=start_date,
+                    check_in__lte=end_date,
+                    status__in=["confirmed", "completed"],
+                )
+                .annotate(month=TruncMonth("check_in"))
+                .values("month")
+                .annotate(revenue=Sum("total_price", default=0), bookings=Count("id"))
+                .order_by("month")
+            )
+
+            # Initialize all months
+            months = [
+                {
+                    "month": timezone.datetime(selected_year, month, 1).date(),
+                    "revenue": 0,
+                    "bookings": 0,
+                }
+                for month in range(1, 13)
+            ]
+
+            # Update with actual data
+            stats_dict = {stat["month"]: stat for stat in monthly_stats}
+            for month in months:
+                if month["month"] in stats_dict:
+                    month["revenue"] = float(stats_dict[month["month"]]["revenue"])
+                    month["bookings"] = stats_dict[month["month"]]["bookings"]
+
+            # Prepare chart data
+            chart_data = {
+                "labels": [month["month"].strftime("%B %Y") for month in months],
+                "revenue": [month["revenue"] for month in months],
+                "bookings": [month["bookings"] for month in months],
+            }
+
+            # Calculate occupancy
+            total_rooms = Room.objects.filter(is_active=True).count()
+            if total_rooms > 0:
+                occupancy_stats = (
+                    Booking.objects.filter(
+                        check_in__gte=start_date,
+                        check_in__lte=end_date,
+                        status__in=["confirmed", "completed"],
+                    )
+                    .annotate(month=TruncMonth("check_in"))
+                    .values("month")
+                    .annotate(occupied_rooms=Count("room", distinct=True))
+                    .order_by("month")
+                )
+
+                occupancy_data = {"labels": chart_data["labels"], "rates": []}
+
+                # Create occupancy stats dictionary
+                occupancy_dict = {
+                    stat["month"]: stat["occupied_rooms"] for stat in occupancy_stats
+                }
+
+                # Calculate rates for all months
+                for month in months:
+                    occupied = occupancy_dict.get(month["month"], 0)
+                    rate = (occupied / total_rooms) * 100
+                    occupancy_data["rates"].append(round(rate, 2))
+
+                chart_data["occupancy_data"] = occupancy_data
+
+            return {"chart_data": chart_data}
+
+        except Exception as e:
+            print(f"Error in get_chart_data: {e}")
+            return {
+                "chart_data": {
+                    "labels": [],
+                    "revenue": [],
+                    "bookings": [],
+                    "occupancy_data": {"labels": [], "rates": []},
+                }
+            }

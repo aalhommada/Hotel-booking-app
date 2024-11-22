@@ -2,6 +2,7 @@ from datetime import timedelta
 
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.contrib.contenttypes.models import ContentType
 from django.db.models import Avg, Count, Sum
 from django.utils import timezone
 from django.views.generic import CreateView, ListView, TemplateView
@@ -19,10 +20,10 @@ class DashboardView(LoginRequiredMixin, UserPassesTestMixin, TemplateView):
     def test_func(self):
         if self.request.user.is_superuser:
             return True
-        return hasattr(self.request.user, "role") and self.request.user.role in [
-            "admin",
-            "manager",
-        ]
+        return (
+            self.request.user.is_staff
+            and self.request.user.groups.filter(name="Managers").exists()
+        )
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
